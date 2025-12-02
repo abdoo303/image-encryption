@@ -5,6 +5,7 @@ Flask API Server for Hyperchaotic Cryptography System
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
 from chaotic_crypto import ChaoticCrypto
+from image_analysis import ImageAnalyzer
 import numpy as np
 from PIL import Image
 import io
@@ -39,8 +40,9 @@ def after_request(response):
     print(f"Response Headers: {dict(response.headers)}")
     return response
 
-# Global crypto instance
+# Global crypto instance and analyzer
 crypto_instance = None
+analyzer = ImageAnalyzer()
 
 
 @app.route('/api/initialize', methods=['POST'])
@@ -204,17 +206,17 @@ def decrypt():
 def visualize():
     """Get visualization data for the chaotic systems"""
     global crypto_instance
-    
+
     if crypto_instance is None:
         return jsonify({
             'success': False,
             'error': 'Crypto system not initialized'
         }), 400
-    
+
     try:
         # Get trajectories (downsample for performance)
         step = 10
-        
+
         trajectories = {
             'system1': {
                 'x': crypto_instance.system1.solution[::step, 0].tolist(),
@@ -235,13 +237,80 @@ def visualize():
                 'w': crypto_instance.system3.solution[::step, 3].tolist(),
             }
         }
-        
+
         return jsonify({
             'success': True,
             'trajectories': trajectories
         })
-    
+
     except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/analyze', methods=['POST'])
+def analyze():
+    """Perform comprehensive analysis on encrypted images"""
+    global crypto_instance, analyzer
+
+    if crypto_instance is None:
+        return jsonify({
+            'success': False,
+            'error': 'Crypto system not initialized'
+        }), 400
+
+    try:
+        # Get images from request
+        data = request.json
+        original_data = data.get('original_image')
+        encrypted_data = data.get('encrypted_image')
+        decrypted_data = data.get('decrypted_image')
+        original_shape = tuple(data.get('original_shape'))
+        rounds = data.get('rounds', 3)
+
+        # Decode images
+        print("Decoding images...")
+        original_bytes = base64.b64decode(original_data.split(',')[1])
+        original_image = Image.open(io.BytesIO(original_bytes))
+        if original_image.mode != 'RGB':
+            original_image = original_image.convert('RGB')
+        original_array = np.array(original_image)
+
+        encrypted_bytes = base64.b64decode(encrypted_data.split(',')[1])
+        encrypted_image = Image.open(io.BytesIO(encrypted_bytes))
+        if encrypted_image.mode != 'RGB':
+            encrypted_image = encrypted_image.convert('RGB')
+        encrypted_array = np.array(encrypted_image)
+
+        decrypted_bytes = base64.b64decode(decrypted_data.split(',')[1])
+        decrypted_image = Image.open(io.BytesIO(decrypted_bytes))
+        if decrypted_image.mode != 'RGB':
+            decrypted_image = decrypted_image.convert('RGB')
+        decrypted_array = np.array(decrypted_image)
+
+        print("Running comprehensive analysis...")
+        # Perform comprehensive analysis
+        report = analyzer.comprehensive_analysis(
+            original_array,
+            encrypted_array,
+            decrypted_array,
+            crypto_instance,
+            original_shape,
+            rounds
+        )
+
+        print("Analysis complete!")
+        return jsonify({
+            'success': True,
+            'analysis': report
+        })
+
+    except Exception as e:
+        import traceback
+        print(f"Analysis error: {str(e)}")
+        print(traceback.format_exc())
         return jsonify({
             'success': False,
             'error': str(e)

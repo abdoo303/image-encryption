@@ -14,6 +14,8 @@ export default function App() {
     const [rounds, setRounds] = useState(3);
     const [activeTab, setActiveTab] = useState("encrypt");
     const [visualData, setVisualData] = useState(null);
+    const [analysisData, setAnalysisData] = useState(null);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
     const canvasRef = useRef(null);
 
     // Initialize the crypto system
@@ -111,6 +113,47 @@ export default function App() {
             console.error("Decryption error:", error);
         }
         setLoading(false);
+    };
+
+    // Analyze images
+    const analyzeImages = async () => {
+        if (!originalImage || !encryptedImage || !decryptedImage || !originalShape) {
+            alert("Please complete encryption and decryption first!");
+            return;
+        }
+
+        console.log("Starting analysis...");
+        setIsAnalyzing(true);
+        try {
+            console.log("Sending analysis request to server...");
+            const response = await fetch("http://localhost:5001/api/analyze", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    original_image: originalImage,
+                    encrypted_image: encryptedImage,
+                    decrypted_image: decryptedImage,
+                    original_shape: originalShape,
+                    rounds: rounds,
+                }),
+            });
+            console.log("Response received:", response.status);
+            const data = await response.json();
+            console.log("Analysis data:", data);
+
+            if (data.success) {
+                console.log("Analysis successful, setting data and switching tab");
+                setAnalysisData(data.analysis);
+                setActiveTab("analysis");
+            } else {
+                console.error("Analysis failed:", data.error);
+                alert("Analysis failed: " + data.error);
+            }
+        } catch (error) {
+            console.error("Analysis error:", error);
+            alert("Failed to analyze images. Error: " + error.message);
+        }
+        setIsAnalyzing(false);
     };
 
     // Draw chaos visualization
@@ -360,6 +403,7 @@ export default function App() {
                                 { id: "encrypt", icon: Lock, label: "ENCRYPT" },
                                 { id: "systems", icon: Activity, label: "SYSTEMS" },
                                 { id: "keys", icon: Code, label: "KEYS" },
+                                { id: "analysis", icon: Zap, label: "ANALYSIS" },
                             ].map((tab) => (
                                 <button
                                     key={tab.id}
@@ -569,8 +613,30 @@ export default function App() {
                                             style={{
                                                 width: "100%",
                                                 border: "1px solid #00ff00",
+                                                marginBottom: "15px",
                                             }}
                                         />
+                                        <button
+                                            onClick={analyzeImages}
+                                            disabled={isAnalyzing}
+                                            className="cyber-button"
+                                            style={{
+                                                width: "100%",
+                                                padding: "12px",
+                                                color: "#ffff00",
+                                                borderColor: "#ffff00",
+                                                cursor: isAnalyzing ? "wait" : "pointer",
+                                            }}
+                                        >
+                                            <Zap
+                                                size={16}
+                                                style={{
+                                                    display: "inline",
+                                                    marginRight: "8px",
+                                                }}
+                                            />
+                                            {isAnalyzing ? "ANALYZING..." : "ANALYZE PERFORMANCE"}
+                                        </button>
                                     </div>
                                 )}
                             </div>
@@ -903,9 +969,383 @@ export default function App() {
                                 </div>
                             </div>
                         )}
+
+                        {/* Analysis Tab */}
+                        {activeTab === "analysis" && !analysisData && (
+                            <div style={{
+                                padding: "40px",
+                                textAlign: "center",
+                                background: "rgba(0, 0, 0, 0.6)",
+                                border: "2px solid #ffff00",
+                                borderRadius: "10px"
+                            }}>
+                                <h3 style={{ color: "#ffff00", marginBottom: "20px" }}>
+                                    {">"} NO ANALYSIS DATA
+                                </h3>
+                                <p style={{ color: "#888" }}>
+                                    Please complete encryption and decryption first, then click "ANALYZE PERFORMANCE"
+                                </p>
+                            </div>
+                        )}
+                        {activeTab === "analysis" && analysisData && (
+                            <div style={{ maxWidth: "1600px", margin: "0 auto" }}>
+                                {/* Performance Metrics Summary */}
+                                <div
+                                    style={{
+                                        display: "grid",
+                                        gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+                                        gap: "20px",
+                                        marginBottom: "30px",
+                                    }}
+                                >
+                                    {/* MSE Card */}
+                                    <MetricCard
+                                        title="MSE Analysis"
+                                        color="#00ffff"
+                                        metrics={[
+                                            {
+                                                label: "Plain vs Encrypted",
+                                                value: analysisData.mse_plain_encrypted.toFixed(2),
+                                                description: "Higher is better (more different)",
+                                            },
+                                            {
+                                                label: "Plain vs Decrypted",
+                                                value: analysisData.mse_plain_decrypted.toFixed(2),
+                                                description: "Lower is better (0 = perfect)",
+                                            },
+                                        ]}
+                                    />
+
+                                    {/* SSIM Card */}
+                                    <MetricCard
+                                        title="SSIM Analysis"
+                                        color="#ff00ff"
+                                        metrics={[
+                                            {
+                                                label: "Plain vs Encrypted",
+                                                value: analysisData.ssim_plain_encrypted.toFixed(4),
+                                                description: "Lower is better (0 = completely different)",
+                                            },
+                                            {
+                                                label: "Plain vs Decrypted",
+                                                value: analysisData.ssim_plain_decrypted.toFixed(4),
+                                                description: "Higher is better (1 = identical)",
+                                            },
+                                        ]}
+                                    />
+
+                                    {/* Key Space Card */}
+                                    <MetricCard
+                                        title="Key Space"
+                                        color="#ffff00"
+                                        metrics={[
+                                            {
+                                                label: "Key Space (bits)",
+                                                value: analysisData.key_space.key_space_bits.toFixed(0),
+                                                description: `~${analysisData.key_space.comparison_aes256.toFixed(1)}x stronger than AES-256`,
+                                            },
+                                            {
+                                                label: "Total Parameters",
+                                                value: analysisData.key_space.total_parameters,
+                                                description: `${analysisData.key_space.initial_conditions} ICs + ${analysisData.key_space.system_parameters} params`,
+                                            },
+                                        ]}
+                                    />
+                                </div>
+
+                                {/* Shannon Entropy */}
+                                <EntropyDisplay entropy={analysisData.entropy} />
+
+                                {/* Histograms */}
+                                <HistogramDisplay histograms={analysisData.histograms} />
+
+                                {/* Correlation Analysis */}
+                                <CorrelationDisplay correlation={analysisData.correlation} />
+
+                                {/* Noise Resistance */}
+                                <NoiseResistanceDisplay noiseData={analysisData.noise_resistance} />
+
+                                {/* Statistics */}
+                                <StatisticsDisplay stats={analysisData.statistics} />
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
         </div>
     );
 }
+
+// Helper Components for Analysis Display
+
+const MetricCard = ({ title, color, metrics }) => (
+    <div
+        style={{
+            padding: "25px",
+            background: "rgba(0, 0, 0, 0.6)",
+            border: `2px solid ${color}`,
+            backdropFilter: "blur(10px)",
+        }}
+    >
+        <h3 style={{ color, marginBottom: "20px", fontSize: "1.2rem" }}>
+            {">"} {title}
+        </h3>
+        {metrics.map((metric, idx) => (
+            <div key={idx} style={{ marginBottom: "15px" }}>
+                <p style={{ color: "#888", fontSize: "0.85rem", marginBottom: "5px" }}>
+                    {metric.label}:
+                </p>
+                <p style={{ color, fontSize: "1.5rem", fontWeight: "bold", marginBottom: "5px" }}>
+                    {metric.value}
+                </p>
+                <p style={{ color: "#666", fontSize: "0.75rem" }}>{metric.description}</p>
+            </div>
+        ))}
+    </div>
+);
+
+const EntropyDisplay = ({ entropy }) => (
+    <div
+        style={{
+            padding: "30px",
+            background: "rgba(0, 0, 0, 0.6)",
+            border: "2px solid #00ffff",
+            backdropFilter: "blur(10px)",
+            marginBottom: "30px",
+        }}
+    >
+        <h3 style={{ color: "#00ffff", marginBottom: "20px", fontSize: "1.3rem" }}>
+            {">"} SHANNON ENTROPY (bits/pixel)
+        </h3>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px" }}>
+            {["original", "encrypted", "decrypted"].map((type) => (
+                <div key={type} style={{ textAlign: "center" }}>
+                    <p style={{ color: "#888", fontSize: "0.9rem", marginBottom: "10px", textTransform: "uppercase" }}>
+                        {type}
+                    </p>
+                    <p style={{ color: "#00ffff", fontSize: "2rem", fontWeight: "bold" }}>
+                        {entropy[type].Overall.toFixed(4)}
+                    </p>
+                    <div style={{ marginTop: "10px", fontSize: "0.8rem" }}>
+                        {entropy[type].Red !== undefined && (
+                            <>
+                                <p style={{ color: "#ff6666" }}>R: {entropy[type].Red.toFixed(3)}</p>
+                                <p style={{ color: "#66ff66" }}>G: {entropy[type].Green.toFixed(3)}</p>
+                                <p style={{ color: "#6666ff" }}>B: {entropy[type].Blue.toFixed(3)}</p>
+                            </>
+                        )}
+                    </div>
+                </div>
+            ))}
+        </div>
+        <p style={{ color: "#666", fontSize: "0.85rem", marginTop: "20px", textAlign: "center" }}>
+            Maximum entropy is 8.0 bits/pixel. Higher entropy = better randomness
+        </p>
+    </div>
+);
+
+const HistogramDisplay = ({ histograms }) => {
+    const HistogramChart = ({ data, title, color }) => {
+        const maxValue = Math.max(...data.Red.values, ...data.Green.values, ...data.Blue.values);
+
+        return (
+            <div style={{ marginBottom: "20px" }}>
+                <h4 style={{ color, marginBottom: "10px", fontSize: "1rem" }}>{title}</h4>
+                <div style={{ display: "flex", gap: "10px", height: "150px", alignItems: "flex-end" }}>
+                    {data.Red.values.map((val, idx) => {
+                        if (idx % 8 !== 0) return null; // Sample every 8th value
+                        const redHeight = (data.Red.values[idx] / maxValue) * 100;
+                        const greenHeight = (data.Green.values[idx] / maxValue) * 100;
+                        const blueHeight = (data.Blue.values[idx] / maxValue) * 100;
+
+                        return (
+                            <div key={idx} style={{ flex: 1, display: "flex", gap: "1px", alignItems: "flex-end" }}>
+                                <div
+                                    style={{
+                                        flex: 1,
+                                        height: `${redHeight}%`,
+                                        background: "rgba(255, 100, 100, 0.7)",
+                                        minHeight: "2px",
+                                    }}
+                                />
+                                <div
+                                    style={{
+                                        flex: 1,
+                                        height: `${greenHeight}%`,
+                                        background: "rgba(100, 255, 100, 0.7)",
+                                        minHeight: "2px",
+                                    }}
+                                />
+                                <div
+                                    style={{
+                                        flex: 1,
+                                        height: `${blueHeight}%`,
+                                        background: "rgba(100, 100, 255, 0.7)",
+                                        minHeight: "2px",
+                                    }}
+                                />
+                            </div>
+                        );
+                    })}
+                </div>
+            </div>
+        );
+    };
+
+    return (
+        <div
+            style={{
+                padding: "30px",
+                background: "rgba(0, 0, 0, 0.6)",
+                border: "2px solid #ff00ff",
+                backdropFilter: "blur(10px)",
+                marginBottom: "30px",
+            }}
+        >
+            <h3 style={{ color: "#ff00ff", marginBottom: "20px", fontSize: "1.3rem" }}>
+                {">"} HISTOGRAM ANALYSIS
+            </h3>
+            <HistogramChart data={histograms.original} title="Original Image" color="#00ffff" />
+            <HistogramChart data={histograms.encrypted} title="Encrypted Image" color="#ff00ff" />
+            <HistogramChart data={histograms.decrypted} title="Decrypted Image" color="#00ff00" />
+            <p style={{ color: "#666", fontSize: "0.85rem", marginTop: "15px" }}>
+                Encrypted images should have uniform (flat) histograms across all channels
+            </p>
+        </div>
+    );
+};
+
+const CorrelationDisplay = ({ correlation }) => (
+    <div
+        style={{
+            padding: "30px",
+            background: "rgba(0, 0, 0, 0.6)",
+            border: "2px solid #ffff00",
+            backdropFilter: "blur(10px)",
+            marginBottom: "30px",
+        }}
+    >
+        <h3 style={{ color: "#ffff00", marginBottom: "20px", fontSize: "1.3rem" }}>
+            {">"} CORRELATION ANALYSIS
+        </h3>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "20px" }}>
+            {["horizontal", "vertical", "diagonal"].map((direction) => (
+                <div key={direction} style={{ textAlign: "center" }}>
+                    <p style={{ color: "#888", fontSize: "0.9rem", marginBottom: "10px", textTransform: "uppercase" }}>
+                        {direction}
+                    </p>
+                    <div style={{ marginBottom: "15px" }}>
+                        <p style={{ color: "#666", fontSize: "0.75rem" }}>Original</p>
+                        <p style={{ color: "#00ffff", fontSize: "1.2rem", fontWeight: "bold" }}>
+                            {correlation.original[direction].correlation.toFixed(4)}
+                        </p>
+                    </div>
+                    <div>
+                        <p style={{ color: "#666", fontSize: "0.75rem" }}>Encrypted</p>
+                        <p style={{ color: "#ff00ff", fontSize: "1.2rem", fontWeight: "bold" }}>
+                            {correlation.encrypted[direction].correlation.toFixed(4)}
+                        </p>
+                    </div>
+                </div>
+            ))}
+        </div>
+        <p style={{ color: "#666", fontSize: "0.85rem", marginTop: "20px", textAlign: "center" }}>
+            Encrypted images should have correlation close to 0 (no correlation between adjacent pixels)
+        </p>
+    </div>
+);
+
+const NoiseResistanceDisplay = ({ noiseData }) => (
+    <div
+        style={{
+            padding: "30px",
+            background: "rgba(0, 0, 0, 0.6)",
+            border: "2px solid #00ff00",
+            backdropFilter: "blur(10px)",
+            marginBottom: "30px",
+        }}
+    >
+        <h3 style={{ color: "#00ff00", marginBottom: "20px", fontSize: "1.3rem" }}>
+            {">"} NOISE RESISTANCE ANALYSIS
+        </h3>
+        <p style={{ color: "#888", fontSize: "0.9rem", marginBottom: "20px" }}>
+            Salt & Pepper noise added to encrypted images, then decrypted
+        </p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px" }}>
+            {noiseData.map((result, idx) => (
+                <div
+                    key={idx}
+                    style={{
+                        padding: "15px",
+                        background: "rgba(0, 0, 0, 0.4)",
+                        border: "1px solid #00ff00",
+                    }}
+                >
+                    <p style={{ color: "#00ff00", fontSize: "1rem", marginBottom: "10px", fontWeight: "bold" }}>
+                        Noise: {result.noise_level}
+                    </p>
+                    {result.error ? (
+                        <p style={{ color: "#ff6666", fontSize: "0.85rem" }}>Error: {result.error}</p>
+                    ) : (
+                        <>
+                            <div style={{ marginBottom: "10px" }}>
+                                <img
+                                    src={result.decrypted_image}
+                                    alt={`Noisy ${result.noise_level}`}
+                                    style={{ width: "100%", border: "1px solid #00ff00" }}
+                                />
+                            </div>
+                            <p style={{ color: "#888", fontSize: "0.75rem" }}>
+                                MSE: <span style={{ color: "#00ff00" }}>{result.mse.toFixed(2)}</span>
+                            </p>
+                            <p style={{ color: "#888", fontSize: "0.75rem" }}>
+                                SSIM: <span style={{ color: "#00ff00" }}>{result.ssim.toFixed(4)}</span>
+                            </p>
+                            <p style={{ color: "#888", fontSize: "0.75rem" }}>
+                                PSNR: <span style={{ color: "#00ff00" }}>{result.psnr.toFixed(2)} dB</span>
+                            </p>
+                        </>
+                    )}
+                </div>
+            ))}
+        </div>
+    </div>
+);
+
+const StatisticsDisplay = ({ stats }) => (
+    <div
+        style={{
+            padding: "30px",
+            background: "rgba(0, 0, 0, 0.6)",
+            border: "2px solid #00ffff",
+            backdropFilter: "blur(10px)",
+            marginBottom: "30px",
+        }}
+    >
+        <h3 style={{ color: "#00ffff", marginBottom: "20px", fontSize: "1.3rem" }}>
+            {">"} STATISTICAL PROPERTIES
+        </h3>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px" }}>
+            {["original", "encrypted", "decrypted"].map((type) => (
+                <div
+                    key={type}
+                    style={{
+                        padding: "20px",
+                        background: "rgba(0, 0, 0, 0.4)",
+                        border: "1px solid #00ffff",
+                    }}
+                >
+                    <h4 style={{ color: "#00ffff", marginBottom: "15px", textTransform: "uppercase" }}>{type}</h4>
+                    {Object.entries(stats[type]).map(([key, value]) => (
+                        <p key={key} style={{ color: "#888", fontSize: "0.8rem", marginBottom: "5px" }}>
+                            {key.toUpperCase()}:{" "}
+                            <span style={{ color: "#00ffff" }}>
+                                {typeof value === "number" ? value.toFixed(2) : value}
+                            </span>
+                        </p>
+                    ))}
+                </div>
+            ))}
+        </div>
+    </div>
+);
