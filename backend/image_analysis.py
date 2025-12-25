@@ -10,7 +10,6 @@ from scipy import stats
 import io
 import base64
 
-
 class ImageAnalyzer:
     """Analyze encryption performance through various metrics"""
 
