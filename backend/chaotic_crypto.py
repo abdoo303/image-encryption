@@ -53,7 +53,7 @@ class HyperchaosSystem:
             bytes_ = np.floor(x * 256).astype(np.uint8)
             stream ^= (bytes_ & 1)
 
-        ones = np.sum(stream)
+        ones = int(np.sum(stream))
         zeros = len(stream) - ones
 
         print(f"    ↳ Bitstream length: {len(stream)}")
@@ -68,15 +68,19 @@ class HyperchaosSystem:
 # =========================================================
 # Hyperchaotic Systems (Validated Forms)
 # =========================================================
+# x˙ = (y + z)
+# y˙ = x + ay
+# z˙ = b + z(xc)
 
+# \(\.{x}=-(y+z)\)\(\.{y}=x+ay+w\)\(\.{z}=b+xz\)\(\.{w}=-cz+dw\)
 class RosslerHyperchaos(HyperchaosSystem):
     def equations(self, s, t, a, b, c, d):
         x, y, z, w = s
         return [
             -y - z,
             x + a*y + w,
-            b + z*(x - c),
-            -d*z
+            b + z*x,
+            -c*z + d*w
         ]
 
 
@@ -107,39 +111,60 @@ class LorenzHyperchaos(HyperchaosSystem):
 # =========================================================
 
 class ChaoticCrypto:
-    def __init__(self, seed="secure-seed"):
+    def __init__(self, seed="secure-seed", initial_conditions=None):
 
         seed_int = int(hashlib.sha256(seed.encode()).hexdigest(), 16) % 2**32
         np.random.seed(seed_int)
+        # Use custom initial conditions if provided
+        if initial_conditions is None:
+            ic1 = [-10.0, -6.0, 0.0, 10.0]#[0.25, 3 ,0.5, 0.05]
+            ic2 = [0.2, 0.1, 0.1, 0.0]
+            ic3 = [0.1, 0.0, 0.0, 0.1]
+        else:
+            ic1 = initial_conditions.get('system1', [-10.0, -6.0, 0.0, 10.0])#[0.25, 3 ,0.5, .05])
+            ic2 = initial_conditions.get('system2', [0.2, 0.1, 0.1, 0.0])
+            ic3 = initial_conditions.get('system3', [0.1, 0.0, 0.0, 0.1])
 
-        self.systems = [
-            RosslerHyperchaos(
-                "Rössler Hyperchaos",
-                [0.1, 0.0, 0.1, 0.0],
-                [0.25, 3.0, 5.7, 0.05]
-            ),
-            ChenHyperchaos(
-                "Chen Hyperchaos",
-                [0.2, 0.1, 0.1, 0.0],
-                [35, 3, 28, 5]
-            ),
-            LorenzHyperchaos(
-                "Lorenz Hyperchaos",
-                [0.1, 0.0, 0.0, 0.1],
-                [10, 28, 8/3, 1.0]
-            )
-        ]
+        self.system1 = RosslerHyperchaos(
+            "Rössler Hyperchaos",
+            ic1,
+            [0.25, 3.0, 5.7, 0.05]
+        )
+        self.system2 = ChenHyperchaos(
+            "Chen Hyperchaos",
+            ic2,
+            [35, 3, 28, 5]
+        )
+        self.system3 = LorenzHyperchaos(
+            "Lorenz Hyperchaos",
+            ic3,
+            [10, 28, 8/3, 1.0]
+        )
 
-        self.bitstreams = []
-        self.keys = []
-        self.sboxes = []
+        self.systems = [self.system1, self.system2, self.system3]
 
-        for sys in self.systems:
-            sys.solve()
-            bits = sys.to_bitstream()
-            self.bitstreams.append(bits)
-            self.keys.append(self.generate_key(bits))
-            self.sboxes.append(self.generate_sbox(bits))
+        # Solve systems and generate crypto materials
+        self.system1.solve()
+        self.system2.solve()
+        self.system3.solve()
+
+        self.bitstream1 = self.system1.to_bitstream()
+        self.bitstream2 = self.system2.to_bitstream()
+        self.bitstream3 = self.system3.to_bitstream()
+
+        self.bitstreams = [self.bitstream1, self.bitstream2, self.bitstream3]
+
+        self.key1 = self.generate_key(self.bitstream1)
+        self.key2 = self.generate_key(self.bitstream2)
+        self.key3 = self.generate_key(self.bitstream3)
+
+        self.keys = [self.key1, self.key2, self.key3]
+
+        self.sbox1 = self.generate_sbox(self.bitstream1)
+        self.sbox2 = self.generate_sbox(self.bitstream2)
+        self.sbox3 = self.generate_sbox(self.bitstream3)
+
+        self.sboxes = [self.sbox1, self.sbox2, self.sbox3]
 
     def generate_key(self, bits):
         bits = bits[:len(bits)//8 * 8]
@@ -190,6 +215,34 @@ class ChaoticCrypto:
             data = inv[data]
             data = self.xor(data, self.keys[i])
         return data.reshape(shape)
+
+    def get_system_info(self):
+        """Return information about the chaotic systems"""
+        return {
+            'system1': {
+                'name': self.system1.name,
+                'initial_conditions': self.system1.ic.tolist(),
+                'parameters': list(self.system1.params)
+            },
+            'system2': {
+                'name': self.system2.name,
+                'initial_conditions': self.system2.ic.tolist(),
+                'parameters': list(self.system2.params)
+            },
+            'system3': {
+                'name': self.system3.name,
+                'initial_conditions': self.system3.ic.tolist(),
+                'parameters': list(self.system3.params)
+            }
+        }
+
+    def encrypt_image(self, img, rounds=3):
+        """Encrypt an image (alias for encrypt method)"""
+        return self.encrypt(img, rounds)
+
+    def decrypt_image(self, img, shape, rounds=3):
+        """Decrypt an image (alias for decrypt method)"""
+        return self.decrypt(img, shape, rounds)
 
 
 # =========================================================

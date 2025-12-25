@@ -72,9 +72,9 @@ def initialize():
         
         # Get keys (first 32 bytes for display)
         keys = {
-            'key1': crypto_instance.key1[:32].tolist(),
-            'key2': crypto_instance.key2[:32].tolist(),
-            'key3': crypto_instance.key3[:32].tolist(),
+            'key1': list(crypto_instance.key1[:32]),
+            'key2': list(crypto_instance.key2[:32]),
+            'key3': list(crypto_instance.key3[:32]),
         }
         
         # Get S-boxes (first 32 values for display)
