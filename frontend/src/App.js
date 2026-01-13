@@ -162,8 +162,10 @@ export default function App() {
     };
 
     const [bifurcationDiagrams, setBifurcationDiagrams] = useState({});
+    const [isComputingBifurcation, setIsComputingBifurcation] = useState(false);
 
     const fetchBifurcationDiagrams = async () => {
+        setIsComputingBifurcation(true);
         try {
             const response = await fetch(
                 "http://localhost:5001/api/bifurcation-diagrams"
@@ -183,6 +185,8 @@ export default function App() {
         } catch (error) {
             console.error("Error fetching bifurcation diagrams:", error);
             alert("Error: " + error.message);
+        } finally {
+            setIsComputingBifurcation(false);
         }
     };
 
@@ -1448,22 +1452,176 @@ export default function App() {
                                             </div>
                                         </div>
                                     )}
-                                    <button onClick={fetchBifurcationDiagrams}>
-                                        Generate Bifurcation Diagrams
-                                    </button>
 
-                                    {Object.entries(bifurcationDiagrams).map(
-                                        ([key, imgSrc]) => (
-                                            <div key={key}>
-                                                <h3>{key}</h3>
-                                                <img
-                                                    src={imgSrc}
-                                                    alt={`Bifurcation Diagram ${key}`}
-                                                    style={{ maxWidth: "100%" }}
-                                                />
+                                    {/* Bifurcation Diagrams */}
+                                    <div style={{ marginTop: "40px" }}>
+                                        <h4
+                                            style={{
+                                                color: "#ff00ff",
+                                                marginBottom: "20px",
+                                            }}
+                                        >
+                                            {">"} BIFURCATION DIAGRAMS (Parameter Space Analysis)
+                                        </h4>
+                                        <p
+                                            style={{
+                                                color: "#888",
+                                                marginBottom: "20px",
+                                                lineHeight: "1.8",
+                                            }}
+                                        >
+                                            Bifurcation diagrams visualize how the system behavior changes
+                                            as parameters vary. These diagrams use the same numerical
+                                            integration method as the Lyapunov exponent calculation
+                                            (dt=0.01, optimized for fast computation).
+                                        </p>
+                                        <button
+                                            onClick={fetchBifurcationDiagrams}
+                                            disabled={isComputingBifurcation}
+                                            className="cyber-button"
+                                            style={{
+                                                width: "100%",
+                                                padding: "15px",
+                                                fontSize: "1.1rem",
+                                                color: "#ff00ff",
+                                                borderColor: "#ff00ff",
+                                                cursor: isComputingBifurcation ? "wait" : "pointer",
+                                                marginBottom: "30px",
+                                            }}
+                                        >
+                                            {isComputingBifurcation
+                                                ? "COMPUTING BIFURCATION DIAGRAMS..."
+                                                : "GENERATE BIFURCATION DIAGRAMS"}
+                                        </button>
+
+                                        {Object.keys(bifurcationDiagrams).length > 0 && (
+                                            <div
+                                                style={{
+                                                    display: "grid",
+                                                    gridTemplateColumns:
+                                                        "repeat(auto-fit, minmax(350px, 1fr))",
+                                                    gap: "20px",
+                                                }}
+                                            >
+                                                {/* Rössler */}
+                                                {bifurcationDiagrams.system1 && (
+                                                    <div
+                                                        style={{
+                                                            padding: "20px",
+                                                            background:
+                                                                "rgba(0, 255, 255, 0.1)",
+                                                            border: "2px solid #00ffff",
+                                                        }}
+                                                    >
+                                                        <h5
+                                                            style={{
+                                                                color: "#00ffff",
+                                                                marginBottom: "15px",
+                                                            }}
+                                                        >
+                                                            Rössler Hyperchaos
+                                                        </h5>
+                                                        <img
+                                                            src={bifurcationDiagrams.system1}
+                                                            alt="Rössler Bifurcation Diagram"
+                                                            style={{
+                                                                width: "100%",
+                                                                height: "auto",
+                                                                borderRadius: "4px",
+                                                            }}
+                                                        />
+                                                        <p
+                                                            style={{
+                                                                color: "#888",
+                                                                fontSize: "0.85rem",
+                                                                marginTop: "10px",
+                                                            }}
+                                                        >
+                                                            Parameter sweep showing chaotic transitions
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                {/* Chen */}
+                                                {bifurcationDiagrams.system2 && (
+                                                    <div
+                                                        style={{
+                                                            padding: "20px",
+                                                            background:
+                                                                "rgba(255, 0, 255, 0.1)",
+                                                            border: "2px solid #ff00ff",
+                                                        }}
+                                                    >
+                                                        <h5
+                                                            style={{
+                                                                color: "#ff00ff",
+                                                                marginBottom: "15px",
+                                                            }}
+                                                        >
+                                                            Chen Hyperchaos
+                                                        </h5>
+                                                        <img
+                                                            src={bifurcationDiagrams.system2}
+                                                            alt="Chen Bifurcation Diagram"
+                                                            style={{
+                                                                width: "100%",
+                                                                height: "auto",
+                                                                borderRadius: "4px",
+                                                            }}
+                                                        />
+                                                        <p
+                                                            style={{
+                                                                color: "#888",
+                                                                fontSize: "0.85rem",
+                                                                marginTop: "10px",
+                                                            }}
+                                                        >
+                                                            Parameter sweep showing chaotic transitions
+                                                        </p>
+                                                    </div>
+                                                )}
+
+                                                {/* Lorenz */}
+                                                {bifurcationDiagrams.system3 && (
+                                                    <div
+                                                        style={{
+                                                            padding: "20px",
+                                                            background:
+                                                                "rgba(255, 255, 0, 0.1)",
+                                                            border: "2px solid #ffff00",
+                                                        }}
+                                                    >
+                                                        <h5
+                                                            style={{
+                                                                color: "#ffff00",
+                                                                marginBottom: "15px",
+                                                            }}
+                                                        >
+                                                            Lorenz Hyperchaos
+                                                        </h5>
+                                                        <img
+                                                            src={bifurcationDiagrams.system3}
+                                                            alt="Lorenz Bifurcation Diagram"
+                                                            style={{
+                                                                width: "100%",
+                                                                height: "auto",
+                                                                borderRadius: "4px",
+                                                            }}
+                                                        />
+                                                        <p
+                                                            style={{
+                                                                color: "#888",
+                                                                fontSize: "0.85rem",
+                                                                marginTop: "10px",
+                                                            }}
+                                                        >
+                                                            Parameter sweep showing chaotic transitions
+                                                        </p>
+                                                    </div>
+                                                )}
                                             </div>
-                                        )
-                                    )}
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         )}

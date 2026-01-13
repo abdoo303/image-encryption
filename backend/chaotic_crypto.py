@@ -9,6 +9,7 @@ import hashlib
 from PIL import Image
 import os
 import base64
+import io
 import matplotlib
 matplotlib.use("Agg")   # must be BEFORE pyplot
 import matplotlib.pyplot as plt
@@ -122,68 +123,77 @@ class HyperchaosSystem:
 
         return lyap_exp
     
-    def compute_bifurcation_diagram(self, param_index=0, param_range=None, 
-                                    samples=2000, iterations=1000, last_points=100):
+    def compute_bifurcation_diagram(self, param_index=0, param_range=None,
+                                    samples=100, n_iterations=500, dt=0.01):
         """
         Compute bifurcation diagram by varying one parameter.
+        Uses the same integration approach as Lyapunov exponent calculation.
+
         param_index: which parameter to vary (0, 1, 2, or 3)
         param_range: tuple of (min, max) for parameter sweep
+        samples: number of parameter values to test
+        n_iterations: number of iterations per parameter value
+        dt: time step for integration (same as Lyapunov)
         Returns: matplotlib figure as base64 encoded image
         """
-        
+
         print(f"[+] Computing bifurcation diagram for {self.name} (param {param_index})...")
-        
+
         if param_range is None:
             # Default ranges for each system type
             param_range = (self.params[param_index] * 0.5, self.params[param_index] * 1.5)
-        
+
         param_vals = np.linspace(param_range[0], param_range[1], samples)
-        state = self.ic.copy()
-        
+
         fig, ax = plt.subplots(figsize=(12, 6), dpi=100)
-        
+
         for param_val in param_vals:
             # Update parameter
             params = list(self.params)
             params[param_index] = param_val
             params = tuple(params)
-            
-            # Integrate to remove transient
-            sol = odeint(
-                lambda s, t: self.equations(s, t, *params),
-                state,
-                np.linspace(0, 100, 5000),
-                atol=1e-9,
-                rtol=1e-9
-            )
-            state = sol[-1]
-            
-            # Collect bifurcation points (first state variable)
-            sol = odeint(
-                lambda s, t: self.equations(s, t, *params),
-                state,
-                np.linspace(0, 50, 5000),
-                atol=1e-9,
-                rtol=1e-9
-            )
-            
-            bifurc_points = sol[-last_points:, 0]
-            ax.plot([param_val] * len(bifurc_points), bifurc_points, ',k', alpha=0.25, markersize=0.5)
-        
-        ax.set_xlabel(f"Parameter {param_index}: {self.params[param_index]:.4f}")
+
+            # Start from initial conditions (same as Lyapunov)
+            state = self.ic.copy()
+
+            # Transient removal phase - discard first 50% of iterations
+            transient = n_iterations // 2
+
+            # Storage for bifurcation points
+            bifurc_points = []
+
+            # Integrate using same method as Lyapunov computation
+            for i in range(n_iterations):
+                sol = odeint(
+                    lambda s, t: self.equations(s, t, *params),
+                    state,
+                    [0, dt],
+                    atol=1e-9,
+                    rtol=1e-9
+                )
+                state = sol[-1]
+
+                # Collect points after transient (first state variable)
+                if i >= transient:
+                    bifurc_points.append(state[0])
+
+            # Plot all collected points
+            ax.plot([param_val] * len(bifurc_points), bifurc_points, ',k', alpha=0.3, markersize=0.5)
+
+        ax.set_xlabel(f"Parameter {param_index} (nominal: {self.params[param_index]:.4f})")
         ax.set_ylabel(f"{self.name} - State Variable x")
         ax.set_title(f"Bifurcation Diagram: {self.name}")
         ax.grid(True, alpha=0.3)
         plt.tight_layout()
-        
+
         # Convert to base64
         buf = io.BytesIO()
         plt.savefig(buf, format='png', dpi=100)
         plt.close()
         buf.seek(0)
         img_base64 = base64.b64encode(buf.read()).decode('utf-8')
-        
-        print(f"    ↳ Bifurcation diagram generated")
+
+        print(f"    ↳ Bifurcation diagram generated ({samples} parameter values, {n_iterations} iterations each)")
         return img_base64
     
 class RosslerHyperchaos(HyperchaosSystem):
@@ -260,18 +270,21 @@ class ChaoticCrypto:
         np.random.seed(seed_int)
         # Use custom initial conditions if provided
         if initial_conditions is None:
-            ic1 = [0.25, 3.0, 0.5, 0.05]  # Rössler: from literature
+            # Rössler hyperchaos: proven parameters from literature
+            # Reference: Rössler (1979), a=0.25, b=3.0, c=0.5, d=0.05
+
+            ic1 = [0.1, 0.1, 0.1, 0.1]
             ic2 = [0.2, 0.1, 0.1, 0.0]     # Chen: works well
             ic3 = [0.1, 0.0, 0.0, 0.1]     # Lorenz: works well
         else:
-            ic1 = initial_conditions.get('system1', [-10.0, -6.0, 0.0, 10.0])#[0.25, 3 ,0.5, .05])
+            ic1 = initial_conditions.get('system1', [0.27857, 3.0, 0.3, 0.05])
             ic2 = initial_conditions.get('system2', [0.2, 0.1, 0.1, 0.0])
             ic3 = initial_conditions.get('system3', [0.1, 0.0, 0.0, 0.1])
 
         self.system1 = RosslerHyperchaos(
             "Rössler Hyperchaos",
             ic1,
-            [0.25, 3.0, 0.28, 0.05]  # Standard Rössler hyperchaos parameters
+            [0.25, 3.0, 0.5, 0.05]  # Classic Rössler hyperchaos parameters
         )
         self.system2 = ChenHyperchaos(
             "Chen Hyperchaos",
