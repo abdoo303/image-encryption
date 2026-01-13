@@ -1,0 +1,13 @@
+services:
+    backend:
+        image: flask-backend
+        container_name: backend
+        ports:
+            - "5001:5001"
+    frontend:
+        image: my-react-frontend
+        container_name: frontend
+        ports:
+            - "3001:80"
+        depends_on:
+            - backend

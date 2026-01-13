@@ -18,12 +18,13 @@ export default function App() {
     const [isAnalyzing, setIsAnalyzing] = useState(false);
     const [chaosData, setChaosData] = useState(null);
     const [isComputingChaos, setIsComputingChaos] = useState(false);
+    const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || "http://localhost:5001";
 
     // Initialize the crypto system
     const initializeSystem = async () => {
         setLoading(true);
         try {
-            const response = await fetch("http://localhost:5001/api/initialize", {
+            const response = await fetch(`${API_BASE_URL}/api/initialize`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ seed }),
@@ -35,7 +36,7 @@ export default function App() {
                 setInitialized(true);
 
                 // Get visualization plots (matplotlib-generated images)
-                const vizResponse = await fetch("http://localhost:5001/api/visualize");
+                const vizResponse = await fetch(`${API_BASE_URL}/api/visualize`);
                 const vizData = await vizResponse.json();
                 console.log("Visualization data received:", vizData);
                 if (vizData.success) {
@@ -48,7 +49,8 @@ export default function App() {
         } catch (error) {
             console.error("Initialization error:", error);
             alert(
-                "Failed to initialize. Make sure the Flask server is running on port 5001."
+                "Failed to initialize. Make sure the Flask server is running on " +
+                    REACT_APP_API_BASE_URL
             );
         }
         setLoading(false);
@@ -74,7 +76,7 @@ export default function App() {
 
         setLoading(true);
         try {
-            const response = await fetch("http://localhost:5001/api/encrypt", {
+            const response = await fetch(`${API_BASE_URL}/api/encrypt`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -100,7 +102,7 @@ export default function App() {
 
         setLoading(true);
         try {
-            const response = await fetch("http://localhost:5001/api/decrypt", {
+            const response = await fetch(`${API_BASE_URL}/api/decrypt`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -131,7 +133,7 @@ export default function App() {
         setIsAnalyzing(true);
         try {
             console.log("Sending analysis request to server...");
-            const response = await fetch("http://localhost:5001/api/analyze", {
+            const response = await fetch(`${API_BASE_URL}/api/analyze`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -167,9 +169,7 @@ export default function App() {
     const fetchBifurcationDiagrams = async () => {
         setIsComputingBifurcation(true);
         try {
-            const response = await fetch(
-                "http://localhost:5001/api/bifurcation-diagrams"
-            );
+            const response = await fetch(`${API_BASE_URL}/api/bifurcation-diagrams`);
             const data = await response.json();
 
             if (data.success) {
@@ -194,7 +194,7 @@ export default function App() {
     const computeChaosAnalysis = async () => {
         setIsComputingChaos(true);
         try {
-            const response = await fetch("http://localhost:5001/api/chaos-analysis");
+            const response = await fetch(`${API_BASE_URL}/api/chaos-analysis`);
             const data = await response.json();
             console.log("Chaos analysis data received:", data);
             if (data.success) {
@@ -1461,7 +1461,8 @@ export default function App() {
                                                 marginBottom: "20px",
                                             }}
                                         >
-                                            {">"} BIFURCATION DIAGRAMS (Parameter Space Analysis)
+                                            {">"} BIFURCATION DIAGRAMS (Parameter Space
+                                            Analysis)
                                         </h4>
                                         <p
                                             style={{
@@ -1470,9 +1471,10 @@ export default function App() {
                                                 lineHeight: "1.8",
                                             }}
                                         >
-                                            Bifurcation diagrams visualize how the system behavior changes
-                                            as parameters vary. These diagrams use the same numerical
-                                            integration method as the Lyapunov exponent calculation
+                                            Bifurcation diagrams visualize how the system
+                                            behavior changes as parameters vary. These
+                                            diagrams use the same numerical integration
+                                            method as the Lyapunov exponent calculation
                                             (dt=0.01, optimized for fast computation).
                                         </p>
                                         <button
@@ -1485,7 +1487,9 @@ export default function App() {
                                                 fontSize: "1.1rem",
                                                 color: "#ff00ff",
                                                 borderColor: "#ff00ff",
-                                                cursor: isComputingBifurcation ? "wait" : "pointer",
+                                                cursor: isComputingBifurcation
+                                                    ? "wait"
+                                                    : "pointer",
                                                 marginBottom: "30px",
                                             }}
                                         >
@@ -1522,7 +1526,9 @@ export default function App() {
                                                             Rössler Hyperchaos
                                                         </h5>
                                                         <img
-                                                            src={bifurcationDiagrams.system1}
+                                                            src={
+                                                                bifurcationDiagrams.system1
+                                                            }
                                                             alt="Rössler Bifurcation Diagram"
                                                             style={{
                                                                 width: "100%",
@@ -1537,7 +1543,8 @@ export default function App() {
                                                                 marginTop: "10px",
                                                             }}
                                                         >
-                                                            Parameter sweep showing chaotic transitions
+                                                            Parameter sweep showing
+                                                            chaotic transitions
                                                         </p>
                                                     </div>
                                                 )}
@@ -1561,7 +1568,9 @@ export default function App() {
                                                             Chen Hyperchaos
                                                         </h5>
                                                         <img
-                                                            src={bifurcationDiagrams.system2}
+                                                            src={
+                                                                bifurcationDiagrams.system2
+                                                            }
                                                             alt="Chen Bifurcation Diagram"
                                                             style={{
                                                                 width: "100%",
@@ -1576,7 +1585,8 @@ export default function App() {
                                                                 marginTop: "10px",
                                                             }}
                                                         >
-                                                            Parameter sweep showing chaotic transitions
+                                                            Parameter sweep showing
+                                                            chaotic transitions
                                                         </p>
                                                     </div>
                                                 )}
@@ -1600,7 +1610,9 @@ export default function App() {
                                                             Lorenz Hyperchaos
                                                         </h5>
                                                         <img
-                                                            src={bifurcationDiagrams.system3}
+                                                            src={
+                                                                bifurcationDiagrams.system3
+                                                            }
                                                             alt="Lorenz Bifurcation Diagram"
                                                             style={{
                                                                 width: "100%",
@@ -1615,7 +1627,8 @@ export default function App() {
                                                                 marginTop: "10px",
                                                             }}
                                                         >
-                                                            Parameter sweep showing chaotic transitions
+                                                            Parameter sweep showing
+                                                            chaotic transitions
                                                         </p>
                                                     </div>
                                                 )}
