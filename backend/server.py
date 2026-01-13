@@ -2,8 +2,9 @@
 Flask API Server for Hyperchaotic Cryptography System
 """
 
-from flask import Flask, request, jsonify
-from flask_cors import CORS, cross_origin
+from flask import Flask, request, jsonify, send_from_directory
+
+from flask_cors import CORS
 from chaotic_crypto import ChaoticCrypto
 from image_analysis import ImageAnalyzer
 import numpy as np
@@ -11,8 +12,15 @@ from PIL import Image
 import io
 import base64
 import json
+import plotly.graph_objects as go
+import plotly.io as pio
+import os
 
-app = Flask(__name__)
+app = Flask(
+    __name__,
+    static_folder="../frontend/build",
+    static_url_path=""
+)
 
 # Configure CORS
 CORS(app, resources={
@@ -26,24 +34,28 @@ CORS(app, resources={
 
 @app.before_request
 def before_request():
-    print(f"Request Method: {request.method}")
-    print(f"Request Path: {request.path}")
-    print(f"Request Headers: {dict(request.headers)}")
+    if app.debug:
+        print(f"Request Method: {request.method}")
+        print(f"Request Path: {request.path}")
+        print(f"Request Headers: {dict(request.headers)}")
 
-@app.after_request
-def after_request(response):
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type,Authorization'
-    response.headers['Access-Control-Allow-Methods'] = 'GET,PUT,POST,DELETE,OPTIONS,PATCH'
-    response.headers['Access-Control-Allow-Credentials'] = 'true'
-    print(f"Response Status: {response.status}")
-    print(f"Response Headers: {dict(response.headers)}")
-    return response
+
 
 # Global crypto instance and analyzer
 crypto_instance = None
 analyzer = ImageAnalyzer()
 
+
+@app.route("/api/test")
+def test():
+    return {"status": "ok", "success":True}
+
+@app.route("/")
+@app.route("/<path:path>")
+def serve_react(path=""):
+    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    return send_from_directory(app.static_folder, "index.html")
 
 @app.route('/api/initialize', methods=['POST'])
 def initialize():
@@ -70,11 +82,14 @@ def initialize():
             'system3': crypto_instance.bitstream3[:100].tolist(),
         }
         
-        # Get keys (first 32 bytes for display)
+        # Get keys (first 32 bytes for display, plus total length info)
         keys = {
             'key1': list(crypto_instance.key1[:32]),
             'key2': list(crypto_instance.key2[:32]),
             'key3': list(crypto_instance.key3[:32]),
+            'key1_length': len(crypto_instance.key1),
+            'key2_length': len(crypto_instance.key2),
+            'key3_length': len(crypto_instance.key3),
         }
         
         # Get S-boxes (first 32 values for display)
@@ -204,7 +219,7 @@ def decrypt():
 
 @app.route('/api/visualize', methods=['GET'])
 def visualize():
-    """Get visualization data for the chaotic systems"""
+    """Generate 3D visualization plots for the chaotic systems"""
     global crypto_instance
 
     if crypto_instance is None:
@@ -214,42 +229,256 @@ def visualize():
         }), 400
 
     try:
-        # Get trajectories (downsample for performance)
-        step = 10
+        print("[+] Generating 3D visualization plots...")
 
-        trajectories = {
-            'system1': {
-                'x': crypto_instance.system1.solution[::step, 0].tolist(),
-                'y': crypto_instance.system1.solution[::step, 1].tolist(),
-                'z': crypto_instance.system1.solution[::step, 2].tolist(),
-                'w': crypto_instance.system1.solution[::step, 3].tolist(),
-            },
-            'system2': {
-                'x': crypto_instance.system2.solution[::step, 0].tolist(),
-                'y': crypto_instance.system2.solution[::step, 1].tolist(),
-                'z': crypto_instance.system2.solution[::step, 2].tolist(),
-                'w': crypto_instance.system2.solution[::step, 3].tolist(),
-            },
-            'system3': {
-                'x': crypto_instance.system3.solution[::step, 0].tolist(),
-                'y': crypto_instance.system3.solution[::step, 1].tolist(),
-                'z': crypto_instance.system3.solution[::step, 2].tolist(),
-                'w': crypto_instance.system3.solution[::step, 3].tolist(),
-            }
-        }
+        # Helper function to generate an interactive 3D plot with Plotly
+        def generate_3d_plot(solution, coord_indices, title, color):
+            """
+            Generate an interactive 3D Plotly plot and return as HTML
+            coord_indices: tuple of 3 integers (0-3) for x,y,z,w coordinates
+            """
+            # Downsample for performance
+            step = 10
+            data = solution[::step]
+
+            # Get the three coordinates
+            coord1 = data[:, coord_indices[0]]
+            coord2 = data[:, coord_indices[1]]
+            coord3 = data[:, coord_indices[2]]
+
+            # Create the 3D scatter/line plot
+            labels = ['X', 'Y', 'Z', 'W']
+
+            fig = go.Figure(data=[go.Scatter3d(
+                x=coord1,
+                y=coord2,
+                z=coord3,
+                mode='lines',
+                line=dict(
+                    color=color,
+                    width=2
+                ),
+                name=title,
+                hovertemplate=f'{labels[coord_indices[0]]}: %{{x:.2f}}<br>' +
+                              f'{labels[coord_indices[1]]}: %{{y:.2f}}<br>' +
+                              f'{labels[coord_indices[2]]}: %{{z:.2f}}<extra></extra>'
+            )])
+
+            # Update layout with dark cyberpunk theme
+            fig.update_layout(
+                title=dict(
+                    text=title,
+                    font=dict(size=16, color=color, family='monospace')
+                ),
+                scene=dict(
+                    xaxis=dict(
+                        title=dict(text=labels[coord_indices[0]], font=dict(color=color)),
+                        backgroundcolor='#0a0a0a',
+                        gridcolor='#333333',
+                        showbackground=True
+                    ),
+                    yaxis=dict(
+                        title=dict(text=labels[coord_indices[1]], font=dict(color=color)),
+                        backgroundcolor='#0a0a0a',
+                        gridcolor='#333333',
+                        showbackground=True
+                    ),
+                    zaxis=dict(
+                        title=dict(text=labels[coord_indices[2]], font=dict(color=color)),
+                        backgroundcolor='#0a0a0a',
+                        gridcolor='#333333',
+                        showbackground=True
+                    ),
+                    bgcolor='#0a0a0a'
+                ),
+                paper_bgcolor='#0a0a0a',
+                plot_bgcolor='#0a0a0a',
+                font=dict(color='#ffffff', family='monospace'),
+                showlegend=False,
+                margin=dict(l=0, r=0, t=40, b=0),
+                height=500
+            )
+
+            # Return as HTML with embedded JavaScript for interactivity
+            html_str = pio.to_html(
+                fig,
+                include_plotlyjs='cdn',
+                config={
+                    'displayModeBar': True,
+                    'displaylogo': False,
+                    'modeBarButtonsToRemove': ['toImage'],
+                    'modeBarButtonsToAdd': ['downloadSVG']
+                }
+            )
+
+            return html_str
+
+        # Generate plots for Rössler system
+        print("    ↳ Generating Rössler plots...")
+        rossler_xyz = generate_3d_plot(
+            crypto_instance.system1.solution,
+            (0, 1, 2),
+            'Rössler Hyperchaos (X, Y, Z)',
+            '#00ffff'
+        )
+        rossler_xyw = generate_3d_plot(
+            crypto_instance.system1.solution,
+            (0, 1, 3),
+            'Rössler Hyperchaos (X, Y, W)',
+            '#00ffff'
+        )
+        rossler_xzw = generate_3d_plot(
+            crypto_instance.system1.solution,
+            (0, 2, 3),
+            'Rössler Hyperchaos (X, Z, W)',
+            '#00ffff'
+        )
+
+        # Generate plots for Chen system
+        print("    ↳ Generating Chen plots...")
+        chen_xyz = generate_3d_plot(
+            crypto_instance.system2.solution,
+            (0, 1, 2),
+            'Chen Hyperchaos (X, Y, Z)',
+            '#ff00ff'
+        )
+        chen_xyw = generate_3d_plot(
+            crypto_instance.system2.solution,
+            (0, 1, 3),
+            'Chen Hyperchaos (X, Y, W)',
+            '#ff00ff'
+        )
+        chen_xzw = generate_3d_plot(
+            crypto_instance.system2.solution,
+            (0, 2, 3),
+            'Chen Hyperchaos (X, Z, W)',
+            '#ff00ff'
+        )
+
+        # Generate plots for Lorenz system
+        print("    ↳ Generating Lorenz plots...")
+        lorenz_xyz = generate_3d_plot(
+            crypto_instance.system3.solution,
+            (0, 1, 2),
+            'Lorenz Hyperchaos (X, Y, Z)',
+            '#ffff00'
+        )
+        lorenz_xyw = generate_3d_plot(
+            crypto_instance.system3.solution,
+            (0, 1, 3),
+            'Lorenz Hyperchaos (X, Y, W)',
+            '#ffff00'
+        )
+        lorenz_xzw = generate_3d_plot(
+            crypto_instance.system3.solution,
+            (0, 2, 3),
+            'Lorenz Hyperchaos (X, Z, W)',
+            '#ffff00'
+        )
+
+        print("[+] All plots generated successfully")
 
         return jsonify({
             'success': True,
-            'trajectories': trajectories
+            'plots': {
+                'rossler': {
+                    'xyz': rossler_xyz,
+                    'xyw': rossler_xyw,
+                    'xzw': rossler_xzw
+                },
+                'chen': {
+                    'xyz': chen_xyz,
+                    'xyw': chen_xyw,
+                    'xzw': chen_xzw
+                },
+                'lorenz': {
+                    'xyz': lorenz_xyz,
+                    'xyw': lorenz_xyw,
+                    'xzw': lorenz_xzw
+                }
+            }
         })
 
     except Exception as e:
+        import traceback
+        print(f"Visualization error: {str(e)}")
+        print(traceback.format_exc())
         return jsonify({
             'success': False,
             'error': str(e)
         }), 500
 
 
+@app.route('/api/chaos-analysis', methods=['GET'])
+def chaos_analysis():
+    """Compute Lyapunov exponents to prove hyperchaotic behavior"""
+    global crypto_instance
+
+    if crypto_instance is None:
+        return jsonify({
+            'success': False,
+            'error': 'Crypto system not initialized'
+        }), 400
+
+    try:
+        print("[+] Computing chaos analysis...")
+
+        # Compute Lyapunov exponents for all three systems
+        lyap1 = crypto_instance.system1.compute_lyapunov_spectrum(n_iterations=5000, dt=0.01)
+        lyap2 = crypto_instance.system2.compute_lyapunov_spectrum(n_iterations=5000, dt=0.01)
+        lyap3 = crypto_instance.system3.compute_lyapunov_spectrum(n_iterations=5000, dt=0.01)
+
+
+        print("[+] Chaos analysis complete")
+
+        return jsonify({
+            'success': True,
+            'lyapunov': {
+                'rossler': {
+                    'exponents': lyap1.tolist(),
+                    'lambda1': float(lyap1[0]),
+                    'lambda2': float(lyap1[1]),
+                    'is_hyperchaotic': bool(lyap1[0] > 0 and lyap1[1] > 0)
+                },
+                'chen': {
+                    'exponents': lyap2.tolist(),
+                    'lambda1': float(lyap2[0]),
+                    'lambda2': float(lyap2[1]),
+                    'is_hyperchaotic': bool(lyap2[0] > 0 and lyap2[1] > 0)
+                },
+                'lorenz': {
+                    'exponents': lyap3.tolist(),
+                    'lambda1': float(lyap3[0]),
+                    'lambda2': float(lyap3[1]),
+                    'is_hyperchaotic': bool(lyap3[0] > 0 and lyap3[1] > 0)
+                }
+            },
+         
+        })
+
+    except Exception as e:
+        import traceback
+        print(f"Chaos analysis error: {str(e)}")
+        print(traceback.format_exc())
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+
+@app.route('/api/bifurcation-diagrams', methods=['GET'])
+def get_bifurcation_diagrams():
+    try:
+        diagrams = {}
+        for i, system in enumerate(crypto_instance.systems):
+            diagrams[f"system{i+1}"] = system.compute_bifurcation_diagram(param_index=0)
+        
+        return jsonify({
+            "success": True,
+            "bifurcation_diagrams": diagrams
+        })
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
 @app.route('/api/analyze', methods=['POST'])
 def analyze():
     """Perform comprehensive analysis on encrypted images"""

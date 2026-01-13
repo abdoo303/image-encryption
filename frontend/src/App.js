@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Upload, Lock, Unlock, Zap, Activity, Code, Layers } from "lucide-react";
+import React, { useState } from "react";
+import { Upload, Lock, Unlock, Zap, Activity, Code } from "lucide-react";
 
 // Main App Component
 export default function App() {
@@ -16,7 +16,8 @@ export default function App() {
     const [visualData, setVisualData] = useState(null);
     const [analysisData, setAnalysisData] = useState(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
-    const canvasRef = useRef(null);
+    const [chaosData, setChaosData] = useState(null);
+    const [isComputingChaos, setIsComputingChaos] = useState(false);
 
     // Initialize the crypto system
     const initializeSystem = async () => {
@@ -33,11 +34,15 @@ export default function App() {
                 setSystemInfo(data);
                 setInitialized(true);
 
-                // Get visualization data
+                // Get visualization plots (matplotlib-generated images)
                 const vizResponse = await fetch("http://localhost:5001/api/visualize");
                 const vizData = await vizResponse.json();
+                console.log("Visualization data received:", vizData);
                 if (vizData.success) {
-                    setVisualData(vizData.trajectories);
+                    setVisualData(vizData.plots);
+                    console.log("Visual plots set:", vizData.plots);
+                } else {
+                    console.error("Failed to get visualization data:", vizData);
                 }
             }
         } catch (error) {
@@ -156,53 +161,53 @@ export default function App() {
         setIsAnalyzing(false);
     };
 
-    // Draw chaos visualization
-    useEffect(() => {
-        if (!visualData || !canvasRef.current) return;
+    const [bifurcationDiagrams, setBifurcationDiagrams] = useState({});
 
-        const canvas = canvasRef.current;
-        const ctx = canvas.getContext("2d");
-        const width = canvas.width;
-        const height = canvas.height;
+    const fetchBifurcationDiagrams = async () => {
+        try {
+            const response = await fetch(
+                "http://localhost:5001/api/bifurcation-diagrams"
+            );
+            const data = await response.json();
 
-        ctx.fillStyle = "#000000";
-        ctx.fillRect(0, 0, width, height);
-
-        // Draw all three systems with different colors
-        const systems = [
-            { data: visualData.system1, color: "#00ffff" },
-            { data: visualData.system2, color: "#ff00ff" },
-            { data: visualData.system3, color: "#ffff00" },
-        ];
-
-        systems.forEach((system, idx) => {
-            const x = system.data.x;
-            const y = system.data.y;
-
-            // Normalize coordinates
-            const xMin = Math.min(...x);
-            const xMax = Math.max(...x);
-            const yMin = Math.min(...y);
-            const yMax = Math.max(...y);
-
-            ctx.strokeStyle = system.color;
-            ctx.lineWidth = 1;
-            ctx.globalAlpha = 0.3;
-            ctx.beginPath();
-
-            for (let i = 0; i < x.length; i++) {
-                const px = ((x[i] - xMin) / (xMax - xMin)) * (width - 40) + 20;
-                const py = ((y[i] - yMin) / (yMax - yMin)) * (height - 40) + 20;
-
-                if (i === 0) {
-                    ctx.moveTo(px, py);
-                } else {
-                    ctx.lineTo(px, py);
-                }
+            if (data.success) {
+                const diagrams = {};
+                Object.entries(data.bifurcation_diagrams).forEach(([key, base64]) => {
+                    diagrams[key] = `data:image/png;base64,${base64}`;
+                });
+                setBifurcationDiagrams(diagrams);
+                console.log("Bifurcation diagrams received:", diagrams);
+            } else {
+                alert("Failed to fetch bifurcation diagrams: " + data.error);
             }
-            ctx.stroke();
-        });
-    }, [visualData]);
+        } catch (error) {
+            console.error("Error fetching bifurcation diagrams:", error);
+            alert("Error: " + error.message);
+        }
+    };
+
+    // Compute chaos analysis (Lyapunov)
+    const computeChaosAnalysis = async () => {
+        setIsComputingChaos(true);
+        try {
+            const response = await fetch("http://localhost:5001/api/chaos-analysis");
+            const data = await response.json();
+            console.log("Chaos analysis data received:", data);
+            if (data.success) {
+                setChaosData(data);
+                console.log("Chaos data set:", data);
+            } else {
+                console.error("Failed to get chaos analysis:", data);
+                alert("Failed to compute chaos analysis: " + data.error);
+            }
+        } catch (error) {
+            console.error("Chaos analysis error:", error);
+            alert(
+                "Failed to compute chaos analysis. Make sure the Flask server is running."
+            );
+        }
+        setIsComputingChaos(false);
+    };
 
     return (
         <div
@@ -402,6 +407,7 @@ export default function App() {
                             {[
                                 { id: "encrypt", icon: Lock, label: "ENCRYPT" },
                                 { id: "systems", icon: Activity, label: "SYSTEMS" },
+                                { id: "chaos", icon: Activity, label: "CHAOS PROOF" },
                                 { id: "keys", icon: Code, label: "KEYS" },
                                 { id: "analysis", icon: Zap, label: "ANALYSIS" },
                             ].map((tab) => (
@@ -635,7 +641,9 @@ export default function App() {
                                                     marginRight: "8px",
                                                 }}
                                             />
-                                            {isAnalyzing ? "ANALYZING..." : "ANALYZE PERFORMANCE"}
+                                            {isAnalyzing
+                                                ? "ANALYZING..."
+                                                : "ANALYZE PERFORMANCE"}
                                         </button>
                                     </div>
                                 )}
@@ -662,34 +670,179 @@ export default function App() {
                                                 marginBottom: "20px",
                                             }}
                                         >
-                                            {">"} PHASE SPACE TRAJECTORIES
+                                            {">"} INTERACTIVE PHASE SPACE TRAJECTORIES (3D
+                                            plots - Drag to rotate, scroll to zoom)
                                         </h3>
-                                        <canvas
-                                            ref={canvasRef}
-                                            width={1200}
-                                            height={400}
-                                            style={{
-                                                width: "100%",
-                                                border: "1px solid #00ffff",
-                                            }}
-                                        />
-                                        <div
-                                            style={{
-                                                display: "flex",
-                                                gap: "20px",
-                                                marginTop: "15px",
-                                                justifyContent: "center",
-                                            }}
-                                        >
-                                            <span style={{ color: "#00ffff" }}>
-                                                ■ Rössler
-                                            </span>
-                                            <span style={{ color: "#ff00ff" }}>
-                                                ■ Chen
-                                            </span>
-                                            <span style={{ color: "#ffff00" }}>
-                                                ■ Lorenz
-                                            </span>
+
+                                        {/* Rössler System - 3 interactive plots */}
+                                        <div style={{ marginBottom: "30px" }}>
+                                            <h4
+                                                style={{
+                                                    color: "#00ffff",
+                                                    marginBottom: "15px",
+                                                }}
+                                            >
+                                                {">"} Rössler Hyperchaos (Drag to rotate,
+                                                scroll to zoom)
+                                            </h4>
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    gap: "15px",
+                                                    flexWrap: "wrap",
+                                                }}
+                                            >
+                                                <div style={{ flex: "1 1 300px" }}>
+                                                    <iframe
+                                                        srcDoc={visualData.rossler.xyz}
+                                                        style={{
+                                                            width: "100%",
+                                                            height: "500px",
+                                                            border: "2px solid #00ffff",
+                                                            background: "#0a0a0a",
+                                                        }}
+                                                        title="Rössler (X,Y,Z)"
+                                                    />
+                                                </div>
+                                                <div style={{ flex: "1 1 300px" }}>
+                                                    <iframe
+                                                        srcDoc={visualData.rossler.xyw}
+                                                        style={{
+                                                            width: "100%",
+                                                            height: "500px",
+                                                            border: "2px solid #00ffff",
+                                                            background: "#0a0a0a",
+                                                        }}
+                                                        title="Rössler (X,Y,W)"
+                                                    />
+                                                </div>
+                                                <div style={{ flex: "1 1 300px" }}>
+                                                    <iframe
+                                                        srcDoc={visualData.rossler.xzw}
+                                                        style={{
+                                                            width: "100%",
+                                                            height: "500px",
+                                                            border: "2px solid #00ffff",
+                                                            background: "#0a0a0a",
+                                                        }}
+                                                        title="Rössler (X,Z,W)"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Chen System - 3 interactive plots */}
+                                        <div style={{ marginBottom: "30px" }}>
+                                            <h4
+                                                style={{
+                                                    color: "#ff00ff",
+                                                    marginBottom: "15px",
+                                                }}
+                                            >
+                                                {">"} Chen Hyperchaos (Drag to rotate,
+                                                scroll to zoom)
+                                            </h4>
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    gap: "15px",
+                                                    flexWrap: "wrap",
+                                                }}
+                                            >
+                                                <div style={{ flex: "1 1 300px" }}>
+                                                    <iframe
+                                                        srcDoc={visualData.chen.xyz}
+                                                        style={{
+                                                            width: "100%",
+                                                            height: "500px",
+                                                            border: "2px solid #ff00ff",
+                                                            background: "#0a0a0a",
+                                                        }}
+                                                        title="Chen (X,Y,Z)"
+                                                    />
+                                                </div>
+                                                <div style={{ flex: "1 1 300px" }}>
+                                                    <iframe
+                                                        srcDoc={visualData.chen.xyw}
+                                                        style={{
+                                                            width: "100%",
+                                                            height: "500px",
+                                                            border: "2px solid #ff00ff",
+                                                            background: "#0a0a0a",
+                                                        }}
+                                                        title="Chen (X,Y,W)"
+                                                    />
+                                                </div>
+                                                <div style={{ flex: "1 1 300px" }}>
+                                                    <iframe
+                                                        srcDoc={visualData.chen.xzw}
+                                                        style={{
+                                                            width: "100%",
+                                                            height: "500px",
+                                                            border: "2px solid #ff00ff",
+                                                            background: "#0a0a0a",
+                                                        }}
+                                                        title="Chen (X,Z,W)"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Lorenz System - 3 interactive plots */}
+                                        <div style={{ marginBottom: "10px" }}>
+                                            <h4
+                                                style={{
+                                                    color: "#ffff00",
+                                                    marginBottom: "15px",
+                                                }}
+                                            >
+                                                {">"} Lorenz Hyperchaos (Drag to rotate,
+                                                scroll to zoom)
+                                            </h4>
+                                            <div
+                                                style={{
+                                                    display: "flex",
+                                                    gap: "15px",
+                                                    flexWrap: "wrap",
+                                                }}
+                                            >
+                                                <div style={{ flex: "1 1 300px" }}>
+                                                    <iframe
+                                                        srcDoc={visualData.lorenz.xyz}
+                                                        style={{
+                                                            width: "100%",
+                                                            height: "500px",
+                                                            border: "2px solid #ffff00",
+                                                            background: "#0a0a0a",
+                                                        }}
+                                                        title="Lorenz (X,Y,Z)"
+                                                    />
+                                                </div>
+                                                <div style={{ flex: "1 1 300px" }}>
+                                                    <iframe
+                                                        srcDoc={visualData.lorenz.xyw}
+                                                        style={{
+                                                            width: "100%",
+                                                            height: "500px",
+                                                            border: "2px solid #ffff00",
+                                                            background: "#0a0a0a",
+                                                        }}
+                                                        title="Lorenz (X,Y,W)"
+                                                    />
+                                                </div>
+                                                <div style={{ flex: "1 1 300px" }}>
+                                                    <iframe
+                                                        srcDoc={visualData.lorenz.xzw}
+                                                        style={{
+                                                            width: "100%",
+                                                            height: "500px",
+                                                            border: "2px solid #ffff00",
+                                                            background: "#0a0a0a",
+                                                        }}
+                                                        title="Lorenz (X,Z,W)"
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
                                 )}
@@ -802,6 +955,519 @@ export default function App() {
                             </div>
                         )}
 
+                        {/* Chaos Proof Tab */}
+                        {activeTab === "chaos" && (
+                            <div>
+                                <div
+                                    style={{
+                                        marginBottom: "30px",
+                                        padding: "30px",
+                                        background: "rgba(0, 0, 0, 0.8)",
+                                        border: "2px solid #00ff00",
+                                        backdropFilter: "blur(10px)",
+                                    }}
+                                >
+                                    <h3
+                                        style={{
+                                            color: "#00ff00",
+                                            marginBottom: "20px",
+                                        }}
+                                    >
+                                        {">"} HYPERCHAOS MATHEMATICAL PROOF
+                                    </h3>
+                                    <p
+                                        style={{
+                                            color: "#888",
+                                            marginBottom: "20px",
+                                            lineHeight: "1.8",
+                                        }}
+                                    >
+                                        This section provides rigorous mathematical proof
+                                        that all three systems exhibit hyperchaotic
+                                        behavior. A system is hyperchaotic if it has at
+                                        least two positive Lyapunov exponents (λ₁ {">"} 0
+                                        and λ₂ {">"} 0).{" "}
+                                    </p>
+                                    <button
+                                        onClick={computeChaosAnalysis}
+                                        disabled={isComputingChaos}
+                                        className="cyber-button"
+                                        style={{
+                                            width: "100%",
+                                            padding: "15px",
+                                            fontSize: "1.1rem",
+                                            color: "#00ff00",
+                                            borderColor: "#00ff00",
+                                            cursor: isComputingChaos ? "wait" : "pointer",
+                                            marginBottom: "30px",
+                                        }}
+                                    >
+                                        {isComputingChaos
+                                            ? "COMPUTING LYAPUNOV EXPONENTS..."
+                                            : "COMPUTE CHAOS ANALYSIS"}
+                                    </button>
+                                    {chaosData && (
+                                        <div>
+                                            {/* Lyapunov Exponents */}
+                                            <div style={{ marginBottom: "40px" }}>
+                                                <h4
+                                                    style={{
+                                                        color: "#00ffff",
+                                                        marginBottom: "20px",
+                                                    }}
+                                                >
+                                                    {">"} LYAPUNOV EXPONENTS (Gold
+                                                    Standard for Hyperchaos)
+                                                </h4>
+
+                                                <div
+                                                    style={{
+                                                        display: "grid",
+                                                        gridTemplateColumns:
+                                                            "repeat(auto-fit, minmax(350px, 1fr))",
+                                                        gap: "20px",
+                                                    }}
+                                                >
+                                                    {/* Rössler */}
+                                                    <div
+                                                        style={{
+                                                            padding: "20px",
+                                                            background:
+                                                                "rgba(0, 255, 255, 0.1)",
+                                                            border: "2px solid #00ffff",
+                                                        }}
+                                                    >
+                                                        <h5
+                                                            style={{
+                                                                color: "#00ffff",
+                                                                marginBottom: "15px",
+                                                            }}
+                                                        >
+                                                            Rössler Hyperchaos
+                                                        </h5>
+                                                        <div
+                                                            style={{
+                                                                fontFamily: "monospace",
+                                                                fontSize: "0.9rem",
+                                                            }}
+                                                        >
+                                                            <p
+                                                                style={{
+                                                                    color: "#fff",
+                                                                    marginBottom: "8px",
+                                                                }}
+                                                            >
+                                                                λ₁ ={" "}
+                                                                {chaosData.lyapunov.rossler.lambda1.toFixed(
+                                                                    4
+                                                                )}
+                                                                <span
+                                                                    style={{
+                                                                        color:
+                                                                            chaosData
+                                                                                .lyapunov
+                                                                                .rossler
+                                                                                .lambda1 >
+                                                                            0
+                                                                                ? "#00ff00"
+                                                                                : "#ff0000",
+                                                                        marginLeft:
+                                                                            "10px",
+                                                                    }}
+                                                                >
+                                                                    {chaosData.lyapunov
+                                                                        .rossler.lambda1 >
+                                                                    0
+                                                                        ? "✓ Positive"
+                                                                        : "✗ Negative"}
+                                                                </span>
+                                                            </p>
+                                                            <p
+                                                                style={{
+                                                                    color: "#fff",
+                                                                    marginBottom: "8px",
+                                                                }}
+                                                            >
+                                                                λ₂ ={" "}
+                                                                {chaosData.lyapunov.rossler.lambda2.toFixed(
+                                                                    4
+                                                                )}
+                                                                <span
+                                                                    style={{
+                                                                        color:
+                                                                            chaosData
+                                                                                .lyapunov
+                                                                                .rossler
+                                                                                .lambda2 >
+                                                                            0
+                                                                                ? "#00ff00"
+                                                                                : "#ff0000",
+                                                                        marginLeft:
+                                                                            "10px",
+                                                                    }}
+                                                                >
+                                                                    {chaosData.lyapunov
+                                                                        .rossler.lambda2 >
+                                                                    0
+                                                                        ? "✓ Positive"
+                                                                        : "✗ Negative"}
+                                                                </span>
+                                                            </p>
+                                                            <p
+                                                                style={{
+                                                                    color: "#fff",
+                                                                    marginBottom: "8px",
+                                                                }}
+                                                            >
+                                                                λ₃ ={" "}
+                                                                {chaosData.lyapunov.rossler.exponents[2].toFixed(
+                                                                    4
+                                                                )}
+                                                            </p>
+                                                            <p style={{ color: "#fff" }}>
+                                                                λ₄ ={" "}
+                                                                {chaosData.lyapunov.rossler.exponents[3].toFixed(
+                                                                    4
+                                                                )}
+                                                            </p>
+                                                            <div
+                                                                style={{
+                                                                    marginTop: "15px",
+                                                                    padding: "10px",
+                                                                    background: chaosData
+                                                                        .lyapunov.rossler
+                                                                        .is_hyperchaotic
+                                                                        ? "rgba(0, 255, 0, 0.2)"
+                                                                        : "rgba(255, 0, 0, 0.2)",
+                                                                    border: `1px solid ${
+                                                                        chaosData.lyapunov
+                                                                            .rossler
+                                                                            .is_hyperchaotic
+                                                                            ? "#00ff00"
+                                                                            : "#ff0000"
+                                                                    }`,
+                                                                }}
+                                                            >
+                                                                <strong
+                                                                    style={{
+                                                                        color: chaosData
+                                                                            .lyapunov
+                                                                            .rossler
+                                                                            .is_hyperchaotic
+                                                                            ? "#00ff00"
+                                                                            : "#ff0000",
+                                                                    }}
+                                                                >
+                                                                    {chaosData.lyapunov
+                                                                        .rossler
+                                                                        .is_hyperchaotic
+                                                                        ? "✓ HYPERCHAOTIC"
+                                                                        : "✗ NOT HYPERCHAOTIC"}
+                                                                </strong>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Chen */}
+                                                    <div
+                                                        style={{
+                                                            padding: "20px",
+                                                            background:
+                                                                "rgba(255, 0, 255, 0.1)",
+                                                            border: "2px solid #ff00ff",
+                                                        }}
+                                                    >
+                                                        <h5
+                                                            style={{
+                                                                color: "#ff00ff",
+                                                                marginBottom: "15px",
+                                                            }}
+                                                        >
+                                                            Chen Hyperchaos
+                                                        </h5>
+                                                        <div
+                                                            style={{
+                                                                fontFamily: "monospace",
+                                                                fontSize: "0.9rem",
+                                                            }}
+                                                        >
+                                                            <p
+                                                                style={{
+                                                                    color: "#fff",
+                                                                    marginBottom: "8px",
+                                                                }}
+                                                            >
+                                                                λ₁ ={" "}
+                                                                {chaosData.lyapunov.chen.lambda1.toFixed(
+                                                                    4
+                                                                )}
+                                                                <span
+                                                                    style={{
+                                                                        color:
+                                                                            chaosData
+                                                                                .lyapunov
+                                                                                .chen
+                                                                                .lambda1 >
+                                                                            0
+                                                                                ? "#00ff00"
+                                                                                : "#ff0000",
+                                                                        marginLeft:
+                                                                            "10px",
+                                                                    }}
+                                                                >
+                                                                    {chaosData.lyapunov
+                                                                        .chen.lambda1 > 0
+                                                                        ? "✓ Positive"
+                                                                        : "✗ Negative"}
+                                                                </span>
+                                                            </p>
+                                                            <p
+                                                                style={{
+                                                                    color: "#fff",
+                                                                    marginBottom: "8px",
+                                                                }}
+                                                            >
+                                                                λ₂ ={" "}
+                                                                {chaosData.lyapunov.chen.lambda2.toFixed(
+                                                                    4
+                                                                )}
+                                                                <span
+                                                                    style={{
+                                                                        color:
+                                                                            chaosData
+                                                                                .lyapunov
+                                                                                .chen
+                                                                                .lambda2 >
+                                                                            0
+                                                                                ? "#00ff00"
+                                                                                : "#ff0000",
+                                                                        marginLeft:
+                                                                            "10px",
+                                                                    }}
+                                                                >
+                                                                    {chaosData.lyapunov
+                                                                        .chen.lambda2 > 0
+                                                                        ? "✓ Positive"
+                                                                        : "✗ Negative"}
+                                                                </span>
+                                                            </p>
+                                                            <p
+                                                                style={{
+                                                                    color: "#fff",
+                                                                    marginBottom: "8px",
+                                                                }}
+                                                            >
+                                                                λ₃ ={" "}
+                                                                {chaosData.lyapunov.chen.exponents[2].toFixed(
+                                                                    4
+                                                                )}
+                                                            </p>
+                                                            <p style={{ color: "#fff" }}>
+                                                                λ₄ ={" "}
+                                                                {chaosData.lyapunov.chen.exponents[3].toFixed(
+                                                                    4
+                                                                )}
+                                                            </p>
+                                                            <div
+                                                                style={{
+                                                                    marginTop: "15px",
+                                                                    padding: "10px",
+                                                                    background: chaosData
+                                                                        .lyapunov.chen
+                                                                        .is_hyperchaotic
+                                                                        ? "rgba(0, 255, 0, 0.2)"
+                                                                        : "rgba(255, 0, 0, 0.2)",
+                                                                    border: `1px solid ${
+                                                                        chaosData.lyapunov
+                                                                            .chen
+                                                                            .is_hyperchaotic
+                                                                            ? "#00ff00"
+                                                                            : "#ff0000"
+                                                                    }`,
+                                                                }}
+                                                            >
+                                                                <strong
+                                                                    style={{
+                                                                        color: chaosData
+                                                                            .lyapunov.chen
+                                                                            .is_hyperchaotic
+                                                                            ? "#00ff00"
+                                                                            : "#ff0000",
+                                                                    }}
+                                                                >
+                                                                    {chaosData.lyapunov
+                                                                        .chen
+                                                                        .is_hyperchaotic
+                                                                        ? "✓ HYPERCHAOTIC"
+                                                                        : "✗ NOT HYPERCHAOTIC"}
+                                                                </strong>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Lorenz */}
+                                                    <div
+                                                        style={{
+                                                            padding: "20px",
+                                                            background:
+                                                                "rgba(255, 255, 0, 0.1)",
+                                                            border: "2px solid #ffff00",
+                                                        }}
+                                                    >
+                                                        <h5
+                                                            style={{
+                                                                color: "#ffff00",
+                                                                marginBottom: "15px",
+                                                            }}
+                                                        >
+                                                            Lorenz Hyperchaos
+                                                        </h5>
+                                                        <div
+                                                            style={{
+                                                                fontFamily: "monospace",
+                                                                fontSize: "0.9rem",
+                                                            }}
+                                                        >
+                                                            <p
+                                                                style={{
+                                                                    color: "#fff",
+                                                                    marginBottom: "8px",
+                                                                }}
+                                                            >
+                                                                λ₁ ={" "}
+                                                                {chaosData.lyapunov.lorenz.lambda1.toFixed(
+                                                                    4
+                                                                )}
+                                                                <span
+                                                                    style={{
+                                                                        color:
+                                                                            chaosData
+                                                                                .lyapunov
+                                                                                .lorenz
+                                                                                .lambda1 >
+                                                                            0
+                                                                                ? "#00ff00"
+                                                                                : "#ff0000",
+                                                                        marginLeft:
+                                                                            "10px",
+                                                                    }}
+                                                                >
+                                                                    {chaosData.lyapunov
+                                                                        .lorenz.lambda1 >
+                                                                    0
+                                                                        ? "✓ Positive"
+                                                                        : "✗ Negative"}
+                                                                </span>
+                                                            </p>
+                                                            <p
+                                                                style={{
+                                                                    color: "#fff",
+                                                                    marginBottom: "8px",
+                                                                }}
+                                                            >
+                                                                λ₂ ={" "}
+                                                                {chaosData.lyapunov.lorenz.lambda2.toFixed(
+                                                                    4
+                                                                )}
+                                                                <span
+                                                                    style={{
+                                                                        color:
+                                                                            chaosData
+                                                                                .lyapunov
+                                                                                .lorenz
+                                                                                .lambda2 >
+                                                                            0
+                                                                                ? "#00ff00"
+                                                                                : "#ff0000",
+                                                                        marginLeft:
+                                                                            "10px",
+                                                                    }}
+                                                                >
+                                                                    {chaosData.lyapunov
+                                                                        .lorenz.lambda2 >
+                                                                    0
+                                                                        ? "✓ Positive"
+                                                                        : "✗ Negative"}
+                                                                </span>
+                                                            </p>
+                                                            <p
+                                                                style={{
+                                                                    color: "#fff",
+                                                                    marginBottom: "8px",
+                                                                }}
+                                                            >
+                                                                λ₃ ={" "}
+                                                                {chaosData.lyapunov.lorenz.exponents[2].toFixed(
+                                                                    4
+                                                                )}
+                                                            </p>
+                                                            <p style={{ color: "#fff" }}>
+                                                                λ₄ ={" "}
+                                                                {chaosData.lyapunov.lorenz.exponents[3].toFixed(
+                                                                    4
+                                                                )}
+                                                            </p>
+                                                            <div
+                                                                style={{
+                                                                    marginTop: "15px",
+                                                                    padding: "10px",
+                                                                    background: chaosData
+                                                                        .lyapunov.lorenz
+                                                                        .is_hyperchaotic
+                                                                        ? "rgba(0, 255, 0, 0.2)"
+                                                                        : "rgba(255, 0, 0, 0.2)",
+                                                                    border: `1px solid ${
+                                                                        chaosData.lyapunov
+                                                                            .lorenz
+                                                                            .is_hyperchaotic
+                                                                            ? "#00ff00"
+                                                                            : "#ff0000"
+                                                                    }`,
+                                                                }}
+                                                            >
+                                                                <strong
+                                                                    style={{
+                                                                        color: chaosData
+                                                                            .lyapunov
+                                                                            .lorenz
+                                                                            .is_hyperchaotic
+                                                                            ? "#00ff00"
+                                                                            : "#ff0000",
+                                                                    }}
+                                                                >
+                                                                    {chaosData.lyapunov
+                                                                        .lorenz
+                                                                        .is_hyperchaotic
+                                                                        ? "✓ HYPERCHAOTIC"
+                                                                        : "✗ NOT HYPERCHAOTIC"}
+                                                                </strong>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                    <button onClick={fetchBifurcationDiagrams}>
+                                        Generate Bifurcation Diagrams
+                                    </button>
+
+                                    {Object.entries(bifurcationDiagrams).map(
+                                        ([key, imgSrc]) => (
+                                            <div key={key}>
+                                                <h3>{key}</h3>
+                                                <img
+                                                    src={imgSrc}
+                                                    alt={`Bifurcation Diagram ${key}`}
+                                                    style={{ maxWidth: "100%" }}
+                                                />
+                                            </div>
+                                        )
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Keys Tab */}
                         {activeTab === "keys" && (
                             <div
@@ -873,43 +1539,54 @@ export default function App() {
                                     >
                                         {">"} ENCRYPTION KEYS
                                     </h3>
-                                    {Object.entries(systemInfo.keys).map(
-                                        ([key, keyBytes], idx) => (
-                                            <div
-                                                key={key}
-                                                style={{ marginBottom: "15px" }}
-                                            >
-                                                <p
-                                                    style={{
-                                                        color: "#888",
-                                                        fontSize: "0.85rem",
-                                                        marginBottom: "5px",
-                                                    }}
-                                                >
-                                                    KEY {idx + 1} (First 32 bytes):
-                                                </p>
-                                                <div
-                                                    style={{
-                                                        background: "rgba(0, 0, 0, 0.8)",
-                                                        padding: "10px",
-                                                        color: "#ff00ff",
-                                                        fontSize: "0.75rem",
-                                                        fontFamily:
-                                                            '"Courier New", monospace',
-                                                        wordBreak: "break-all",
-                                                    }}
-                                                >
-                                                    {keyBytes
-                                                        .map((b) =>
-                                                            b
-                                                                .toString(16)
-                                                                .padStart(2, "0")
-                                                        )
-                                                        .join(" ")}
-                                                </div>
-                                            </div>
+                                    {Object.entries(systemInfo.keys)
+                                        .filter(
+                                            ([key]) =>
+                                                key.startsWith("key") &&
+                                                !key.includes("_length")
                                         )
-                                    )}
+                                        .map(([key, keyBytes], idx) => {
+                                            const lengthKey = `${key}_length`;
+                                            const totalLength =
+                                                systemInfo.keys[lengthKey];
+                                            return (
+                                                <div
+                                                    key={key}
+                                                    style={{ marginBottom: "15px" }}
+                                                >
+                                                    <p
+                                                        style={{
+                                                            color: "#888",
+                                                            fontSize: "0.85rem",
+                                                            marginBottom: "5px",
+                                                        }}
+                                                    >
+                                                        KEY {idx + 1} (First 32 of{" "}
+                                                        {totalLength} bytes):
+                                                    </p>
+                                                    <div
+                                                        style={{
+                                                            background:
+                                                                "rgba(0, 0, 0, 0.8)",
+                                                            padding: "10px",
+                                                            color: "#ff00ff",
+                                                            fontSize: "0.75rem",
+                                                            fontFamily:
+                                                                '"Courier New", monospace',
+                                                            wordBreak: "break-all",
+                                                        }}
+                                                    >
+                                                        {keyBytes
+                                                            .map((b) =>
+                                                                b
+                                                                    .toString(16)
+                                                                    .padStart(2, "0")
+                                                            )
+                                                            .join(" ")}
+                                                    </div>
+                                                </div>
+                                            );
+                                        })}
                                 </div>
 
                                 {/* S-boxes */}
@@ -972,18 +1649,21 @@ export default function App() {
 
                         {/* Analysis Tab */}
                         {activeTab === "analysis" && !analysisData && (
-                            <div style={{
-                                padding: "40px",
-                                textAlign: "center",
-                                background: "rgba(0, 0, 0, 0.6)",
-                                border: "2px solid #ffff00",
-                                borderRadius: "10px"
-                            }}>
+                            <div
+                                style={{
+                                    padding: "40px",
+                                    textAlign: "center",
+                                    background: "rgba(0, 0, 0, 0.6)",
+                                    border: "2px solid #ffff00",
+                                    borderRadius: "10px",
+                                }}
+                            >
                                 <h3 style={{ color: "#ffff00", marginBottom: "20px" }}>
                                     {">"} NO ANALYSIS DATA
                                 </h3>
                                 <p style={{ color: "#888" }}>
-                                    Please complete encryption and decryption first, then click "ANALYZE PERFORMANCE"
+                                    Please complete encryption and decryption first, then
+                                    click "ANALYZE PERFORMANCE"
                                 </p>
                             </div>
                         )}
@@ -993,7 +1673,8 @@ export default function App() {
                                 <div
                                     style={{
                                         display: "grid",
-                                        gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
+                                        gridTemplateColumns:
+                                            "repeat(auto-fit, minmax(300px, 1fr))",
                                         gap: "20px",
                                         marginBottom: "30px",
                                     }}
@@ -1005,13 +1686,19 @@ export default function App() {
                                         metrics={[
                                             {
                                                 label: "Plain vs Encrypted",
-                                                value: analysisData.mse_plain_encrypted.toFixed(2),
-                                                description: "Higher is better (more different)",
+                                                value: analysisData.mse_plain_encrypted.toFixed(
+                                                    2
+                                                ),
+                                                description:
+                                                    "Higher is better (more different)",
                                             },
                                             {
                                                 label: "Plain vs Decrypted",
-                                                value: analysisData.mse_plain_decrypted.toFixed(2),
-                                                description: "Lower is better (0 = perfect)",
+                                                value: analysisData.mse_plain_decrypted.toFixed(
+                                                    2
+                                                ),
+                                                description:
+                                                    "Lower is better (0 = perfect)",
                                             },
                                         ]}
                                     />
@@ -1023,13 +1710,19 @@ export default function App() {
                                         metrics={[
                                             {
                                                 label: "Plain vs Encrypted",
-                                                value: analysisData.ssim_plain_encrypted.toFixed(4),
-                                                description: "Lower is better (0 = completely different)",
+                                                value: analysisData.ssim_plain_encrypted.toFixed(
+                                                    4
+                                                ),
+                                                description:
+                                                    "Lower is better (0 = completely different)",
                                             },
                                             {
                                                 label: "Plain vs Decrypted",
-                                                value: analysisData.ssim_plain_decrypted.toFixed(4),
-                                                description: "Higher is better (1 = identical)",
+                                                value: analysisData.ssim_plain_decrypted.toFixed(
+                                                    4
+                                                ),
+                                                description:
+                                                    "Higher is better (1 = identical)",
                                             },
                                         ]}
                                     />
@@ -1041,12 +1734,17 @@ export default function App() {
                                         metrics={[
                                             {
                                                 label: "Key Space (bits)",
-                                                value: analysisData.key_space.key_space_bits.toFixed(0),
-                                                description: `~${analysisData.key_space.comparison_aes256.toFixed(1)}x stronger than AES-256`,
+                                                value: analysisData.key_space.key_space_bits.toFixed(
+                                                    0
+                                                ),
+                                                description: `~${analysisData.key_space.comparison_aes256.toFixed(
+                                                    1
+                                                )}x stronger than AES-256`,
                                             },
                                             {
                                                 label: "Total Parameters",
-                                                value: analysisData.key_space.total_parameters,
+                                                value: analysisData.key_space
+                                                    .total_parameters,
                                                 description: `${analysisData.key_space.initial_conditions} ICs + ${analysisData.key_space.system_parameters} params`,
                                             },
                                         ]}
@@ -1060,10 +1758,14 @@ export default function App() {
                                 <HistogramDisplay histograms={analysisData.histograms} />
 
                                 {/* Correlation Analysis */}
-                                <CorrelationDisplay correlation={analysisData.correlation} />
+                                <CorrelationDisplay
+                                    correlation={analysisData.correlation}
+                                />
 
                                 {/* Noise Resistance */}
-                                <NoiseResistanceDisplay noiseData={analysisData.noise_resistance} />
+                                <NoiseResistanceDisplay
+                                    noiseData={analysisData.noise_resistance}
+                                />
 
                                 {/* Statistics */}
                                 <StatisticsDisplay stats={analysisData.statistics} />
@@ -1095,7 +1797,14 @@ const MetricCard = ({ title, color, metrics }) => (
                 <p style={{ color: "#888", fontSize: "0.85rem", marginBottom: "5px" }}>
                     {metric.label}:
                 </p>
-                <p style={{ color, fontSize: "1.5rem", fontWeight: "bold", marginBottom: "5px" }}>
+                <p
+                    style={{
+                        color,
+                        fontSize: "1.5rem",
+                        fontWeight: "bold",
+                        marginBottom: "5px",
+                    }}
+                >
                     {metric.value}
                 </p>
                 <p style={{ color: "#666", fontSize: "0.75rem" }}>{metric.description}</p>
@@ -1117,10 +1826,23 @@ const EntropyDisplay = ({ entropy }) => (
         <h3 style={{ color: "#00ffff", marginBottom: "20px", fontSize: "1.3rem" }}>
             {">"} SHANNON ENTROPY (bits/pixel)
         </h3>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px" }}>
+        <div
+            style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                gap: "20px",
+            }}
+        >
             {["original", "encrypted", "decrypted"].map((type) => (
                 <div key={type} style={{ textAlign: "center" }}>
-                    <p style={{ color: "#888", fontSize: "0.9rem", marginBottom: "10px", textTransform: "uppercase" }}>
+                    <p
+                        style={{
+                            color: "#888",
+                            fontSize: "0.9rem",
+                            marginBottom: "10px",
+                            textTransform: "uppercase",
+                        }}
+                    >
                         {type}
                     </p>
                     <p style={{ color: "#00ffff", fontSize: "2rem", fontWeight: "bold" }}>
@@ -1129,16 +1851,29 @@ const EntropyDisplay = ({ entropy }) => (
                     <div style={{ marginTop: "10px", fontSize: "0.8rem" }}>
                         {entropy[type].Red !== undefined && (
                             <>
-                                <p style={{ color: "#ff6666" }}>R: {entropy[type].Red.toFixed(3)}</p>
-                                <p style={{ color: "#66ff66" }}>G: {entropy[type].Green.toFixed(3)}</p>
-                                <p style={{ color: "#6666ff" }}>B: {entropy[type].Blue.toFixed(3)}</p>
+                                <p style={{ color: "#ff6666" }}>
+                                    R: {entropy[type].Red.toFixed(3)}
+                                </p>
+                                <p style={{ color: "#66ff66" }}>
+                                    G: {entropy[type].Green.toFixed(3)}
+                                </p>
+                                <p style={{ color: "#6666ff" }}>
+                                    B: {entropy[type].Blue.toFixed(3)}
+                                </p>
                             </>
                         )}
                     </div>
                 </div>
             ))}
         </div>
-        <p style={{ color: "#666", fontSize: "0.85rem", marginTop: "20px", textAlign: "center" }}>
+        <p
+            style={{
+                color: "#666",
+                fontSize: "0.85rem",
+                marginTop: "20px",
+                textAlign: "center",
+            }}
+        >
             Maximum entropy is 8.0 bits/pixel. Higher entropy = better randomness
         </p>
     </div>
@@ -1146,12 +1881,23 @@ const EntropyDisplay = ({ entropy }) => (
 
 const HistogramDisplay = ({ histograms }) => {
     const HistogramChart = ({ data, title, color }) => {
-        const maxValue = Math.max(...data.Red.values, ...data.Green.values, ...data.Blue.values);
+        const maxValue = Math.max(
+            ...data.Red.values,
+            ...data.Green.values,
+            ...data.Blue.values
+        );
 
         return (
             <div style={{ marginBottom: "20px" }}>
                 <h4 style={{ color, marginBottom: "10px", fontSize: "1rem" }}>{title}</h4>
-                <div style={{ display: "flex", gap: "10px", height: "150px", alignItems: "flex-end" }}>
+                <div
+                    style={{
+                        display: "flex",
+                        gap: "10px",
+                        height: "150px",
+                        alignItems: "flex-end",
+                    }}
+                >
                     {data.Red.values.map((val, idx) => {
                         if (idx % 8 !== 0) return null; // Sample every 8th value
                         const redHeight = (data.Red.values[idx] / maxValue) * 100;
@@ -1159,7 +1905,15 @@ const HistogramDisplay = ({ histograms }) => {
                         const blueHeight = (data.Blue.values[idx] / maxValue) * 100;
 
                         return (
-                            <div key={idx} style={{ flex: 1, display: "flex", gap: "1px", alignItems: "flex-end" }}>
+                            <div
+                                key={idx}
+                                style={{
+                                    flex: 1,
+                                    display: "flex",
+                                    gap: "1px",
+                                    alignItems: "flex-end",
+                                }}
+                            >
                                 <div
                                     style={{
                                         flex: 1,
@@ -1205,9 +1959,21 @@ const HistogramDisplay = ({ histograms }) => {
             <h3 style={{ color: "#ff00ff", marginBottom: "20px", fontSize: "1.3rem" }}>
                 {">"} HISTOGRAM ANALYSIS
             </h3>
-            <HistogramChart data={histograms.original} title="Original Image" color="#00ffff" />
-            <HistogramChart data={histograms.encrypted} title="Encrypted Image" color="#ff00ff" />
-            <HistogramChart data={histograms.decrypted} title="Decrypted Image" color="#00ff00" />
+            <HistogramChart
+                data={histograms.original}
+                title="Original Image"
+                color="#00ffff"
+            />
+            <HistogramChart
+                data={histograms.encrypted}
+                title="Encrypted Image"
+                color="#ff00ff"
+            />
+            <HistogramChart
+                data={histograms.decrypted}
+                title="Decrypted Image"
+                color="#00ff00"
+            />
             <p style={{ color: "#666", fontSize: "0.85rem", marginTop: "15px" }}>
                 Encrypted images should have uniform (flat) histograms across all channels
             </p>
@@ -1228,29 +1994,62 @@ const CorrelationDisplay = ({ correlation }) => (
         <h3 style={{ color: "#ffff00", marginBottom: "20px", fontSize: "1.3rem" }}>
             {">"} CORRELATION ANALYSIS
         </h3>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))", gap: "20px" }}>
+        <div
+            style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(250px, 1fr))",
+                gap: "20px",
+            }}
+        >
             {["horizontal", "vertical", "diagonal"].map((direction) => (
                 <div key={direction} style={{ textAlign: "center" }}>
-                    <p style={{ color: "#888", fontSize: "0.9rem", marginBottom: "10px", textTransform: "uppercase" }}>
+                    <p
+                        style={{
+                            color: "#888",
+                            fontSize: "0.9rem",
+                            marginBottom: "10px",
+                            textTransform: "uppercase",
+                        }}
+                    >
                         {direction}
                     </p>
                     <div style={{ marginBottom: "15px" }}>
                         <p style={{ color: "#666", fontSize: "0.75rem" }}>Original</p>
-                        <p style={{ color: "#00ffff", fontSize: "1.2rem", fontWeight: "bold" }}>
+                        <p
+                            style={{
+                                color: "#00ffff",
+                                fontSize: "1.2rem",
+                                fontWeight: "bold",
+                            }}
+                        >
                             {correlation.original[direction].correlation.toFixed(4)}
                         </p>
                     </div>
                     <div>
                         <p style={{ color: "#666", fontSize: "0.75rem" }}>Encrypted</p>
-                        <p style={{ color: "#ff00ff", fontSize: "1.2rem", fontWeight: "bold" }}>
+                        <p
+                            style={{
+                                color: "#ff00ff",
+                                fontSize: "1.2rem",
+                                fontWeight: "bold",
+                            }}
+                        >
                             {correlation.encrypted[direction].correlation.toFixed(4)}
                         </p>
                     </div>
                 </div>
             ))}
         </div>
-        <p style={{ color: "#666", fontSize: "0.85rem", marginTop: "20px", textAlign: "center" }}>
-            Encrypted images should have correlation close to 0 (no correlation between adjacent pixels)
+        <p
+            style={{
+                color: "#666",
+                fontSize: "0.85rem",
+                marginTop: "20px",
+                textAlign: "center",
+            }}
+        >
+            Encrypted images should have correlation close to 0 (no correlation between
+            adjacent pixels)
         </p>
     </div>
 );
@@ -1271,7 +2070,13 @@ const NoiseResistanceDisplay = ({ noiseData }) => (
         <p style={{ color: "#888", fontSize: "0.9rem", marginBottom: "20px" }}>
             Salt & Pepper noise added to encrypted images, then decrypted
         </p>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "20px" }}>
+        <div
+            style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))",
+                gap: "20px",
+            }}
+        >
             {noiseData.map((result, idx) => (
                 <div
                     key={idx}
@@ -1281,11 +2086,20 @@ const NoiseResistanceDisplay = ({ noiseData }) => (
                         border: "1px solid #00ff00",
                     }}
                 >
-                    <p style={{ color: "#00ff00", fontSize: "1rem", marginBottom: "10px", fontWeight: "bold" }}>
+                    <p
+                        style={{
+                            color: "#00ff00",
+                            fontSize: "1rem",
+                            marginBottom: "10px",
+                            fontWeight: "bold",
+                        }}
+                    >
                         Noise: {result.noise_level}
                     </p>
                     {result.error ? (
-                        <p style={{ color: "#ff6666", fontSize: "0.85rem" }}>Error: {result.error}</p>
+                        <p style={{ color: "#ff6666", fontSize: "0.85rem" }}>
+                            Error: {result.error}
+                        </p>
                     ) : (
                         <>
                             <div style={{ marginBottom: "10px" }}>
@@ -1296,13 +2110,22 @@ const NoiseResistanceDisplay = ({ noiseData }) => (
                                 />
                             </div>
                             <p style={{ color: "#888", fontSize: "0.75rem" }}>
-                                MSE: <span style={{ color: "#00ff00" }}>{result.mse.toFixed(2)}</span>
+                                MSE:{" "}
+                                <span style={{ color: "#00ff00" }}>
+                                    {result.mse.toFixed(2)}
+                                </span>
                             </p>
                             <p style={{ color: "#888", fontSize: "0.75rem" }}>
-                                SSIM: <span style={{ color: "#00ff00" }}>{result.ssim.toFixed(4)}</span>
+                                SSIM:{" "}
+                                <span style={{ color: "#00ff00" }}>
+                                    {result.ssim.toFixed(4)}
+                                </span>
                             </p>
                             <p style={{ color: "#888", fontSize: "0.75rem" }}>
-                                PSNR: <span style={{ color: "#00ff00" }}>{result.psnr.toFixed(2)} dB</span>
+                                PSNR:{" "}
+                                <span style={{ color: "#00ff00" }}>
+                                    {result.psnr.toFixed(2)} dB
+                                </span>
                             </p>
                         </>
                     )}
@@ -1325,7 +2148,13 @@ const StatisticsDisplay = ({ stats }) => (
         <h3 style={{ color: "#00ffff", marginBottom: "20px", fontSize: "1.3rem" }}>
             {">"} STATISTICAL PROPERTIES
         </h3>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "20px" }}>
+        <div
+            style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gap: "20px",
+            }}
+        >
             {["original", "encrypted", "decrypted"].map((type) => (
                 <div
                     key={type}
@@ -1335,9 +2164,24 @@ const StatisticsDisplay = ({ stats }) => (
                         border: "1px solid #00ffff",
                     }}
                 >
-                    <h4 style={{ color: "#00ffff", marginBottom: "15px", textTransform: "uppercase" }}>{type}</h4>
+                    <h4
+                        style={{
+                            color: "#00ffff",
+                            marginBottom: "15px",
+                            textTransform: "uppercase",
+                        }}
+                    >
+                        {type}
+                    </h4>
                     {Object.entries(stats[type]).map(([key, value]) => (
-                        <p key={key} style={{ color: "#888", fontSize: "0.8rem", marginBottom: "5px" }}>
+                        <p
+                            key={key}
+                            style={{
+                                color: "#888",
+                                fontSize: "0.8rem",
+                                marginBottom: "5px",
+                            }}
+                        >
                             {key.toUpperCase()}:{" "}
                             <span style={{ color: "#00ffff" }}>
                                 {typeof value === "number" ? value.toFixed(2) : value}

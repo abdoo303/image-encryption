@@ -2,8 +2,9 @@
 Visualize the three hyperchaotic attractors
 """
 
+import matplotlib
+matplotlib.use("Agg")   # must be BEFORE pyplot
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 from chaotic_crypto import ChaoticCrypto
 

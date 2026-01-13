@@ -7,6 +7,12 @@ import numpy as np
 from scipy.integrate import odeint
 import hashlib
 from PIL import Image
+import os
+import base64
+import matplotlib
+matplotlib.use("Agg")   # must be BEFORE pyplot
+import matplotlib.pyplot as plt
+
 
 
 # =========================================================
@@ -64,15 +70,122 @@ class HyperchaosSystem:
     def equations(self, state, t, *params):
         raise NotImplementedError
 
+    def jacobian(self, state, *params):
+        """Compute Jacobian matrix for Lyapunov exponent calculation"""
+        raise NotImplementedError
 
-# =========================================================
-# Hyperchaotic Systems (Validated Forms)
-# =========================================================
-# x˙ = (y + z)
-# y˙ = x + ay
-# z˙ = b + z(xc)
+    def compute_lyapunov_spectrum(self, n_iterations=10000, dt=0.01):
+        """
+        Calculate Lyapunov exponents using the QR decomposition method.
+        Returns: array of Lyapunov exponents sorted in descending order
+        """
+        print(f"[+] Computing Lyapunov spectrum for {self.name}...")
 
-# \(\.{x}=-(y+z)\)\(\.{y}=x+ay+w\)\(\.{z}=b+xz\)\(\.{w}=-cz+dw\)
+        dim = len(self.ic)
+        state = self.ic.copy()
+
+        # Initialize orthonormal basis
+        Q = np.eye(dim)
+        lyap_sum = np.zeros(dim)
+
+        for i in range(n_iterations):
+            # Integrate system
+            sol = odeint(
+                lambda s, t: self.equations(s, t, *self.params),
+                state,
+                [0, dt],
+                atol=1e-9,
+                rtol=1e-9
+            )
+            state = sol[-1]
+
+            # Compute Jacobian at current state
+            J = self.jacobian(state, *self.params)
+
+            # Propagate tangent vectors
+            Q = J @ Q
+
+            # QR decomposition
+            Q, R = np.linalg.qr(Q)
+
+            # Accumulate Lyapunov exponents
+            lyap_sum += np.log(np.abs(np.diag(R)))
+
+        # Calculate Lyapunov exponents
+        lyap_exp = lyap_sum / (n_iterations * dt)
+        lyap_exp = np.sort(lyap_exp)[::-1]  # Sort descending
+
+        print(f"    ↳ Lyapunov exponents: {lyap_exp}")
+        print(f"    ↳ λ₁ = {lyap_exp[0]:.4f} (λ₁ > 0: {'✓' if lyap_exp[0] > 0 else '✗'})")
+        print(f"    ↳ λ₂ = {lyap_exp[1]:.4f} (λ₂ > 0: {'✓' if lyap_exp[1] > 0 else '✗'})")
+        print(f"    ↳ Hyperchaotic: {'YES ✓' if lyap_exp[0] > 0 and lyap_exp[1] > 0 else 'NO ✗'}")
+
+        return lyap_exp
+    
+    def compute_bifurcation_diagram(self, param_index=0, param_range=None, 
+                                    samples=2000, iterations=1000, last_points=100):
+        """
+        Compute bifurcation diagram by varying one parameter.
+        param_index: which parameter to vary (0, 1, 2, or 3)
+        param_range: tuple of (min, max) for parameter sweep
+        Returns: matplotlib figure as base64 encoded image
+        """
+        
+        print(f"[+] Computing bifurcation diagram for {self.name} (param {param_index})...")
+        
+        if param_range is None:
+            # Default ranges for each system type
+            param_range = (self.params[param_index] * 0.5, self.params[param_index] * 1.5)
+        
+        param_vals = np.linspace(param_range[0], param_range[1], samples)
+        state = self.ic.copy()
+        
+        fig, ax = plt.subplots(figsize=(12, 6), dpi=100)
+        
+        for param_val in param_vals:
+            # Update parameter
+            params = list(self.params)
+            params[param_index] = param_val
+            params = tuple(params)
+            
+            # Integrate to remove transient
+            sol = odeint(
+                lambda s, t: self.equations(s, t, *params),
+                state,
+                np.linspace(0, 100, 5000),
+                atol=1e-9,
+                rtol=1e-9
+            )
+            state = sol[-1]
+            
+            # Collect bifurcation points (first state variable)
+            sol = odeint(
+                lambda s, t: self.equations(s, t, *params),
+                state,
+                np.linspace(0, 50, 5000),
+                atol=1e-9,
+                rtol=1e-9
+            )
+            
+            bifurc_points = sol[-last_points:, 0]
+            ax.plot([param_val] * len(bifurc_points), bifurc_points, ',k', alpha=0.25, markersize=0.5)
+        
+        ax.set_xlabel(f"Parameter {param_index}: {self.params[param_index]:.4f}")
+        ax.set_ylabel(f"{self.name} - State Variable x")
+        ax.set_title(f"Bifurcation Diagram: {self.name}")
+        ax.grid(True, alpha=0.3)
+        plt.tight_layout()
+        
+        # Convert to base64
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png', dpi=100)
+        plt.close()
+        buf.seek(0)
+        img_base64 = base64.b64encode(buf.read()).decode('utf-8')
+        
+        print(f"    ↳ Bifurcation diagram generated")
+        return img_base64
+    
 class RosslerHyperchaos(HyperchaosSystem):
     def equations(self, s, t, a, b, c, d):
         x, y, z, w = s
@@ -82,6 +195,16 @@ class RosslerHyperchaos(HyperchaosSystem):
             b + z*x,
             -c*z + d*w
         ]
+
+    def jacobian(self, state, *params):
+        a, b, c, d = params
+        x, y, z, w = state
+        return np.array([
+            [0,  -1,  -1,   0],
+            [1,   a,   0,   1],
+            [z,   0,   x,   0],
+            [0,   0,  -c,   d]
+        ])
 
 
 class ChenHyperchaos(HyperchaosSystem):
@@ -94,6 +217,16 @@ class ChenHyperchaos(HyperchaosSystem):
             -d*z
         ]
 
+    def jacobian(self, state, *params):
+        a, b, c, d = params
+        x, y, z, w = state
+        return np.array([
+            [-a,      a,      0,   0],
+            [c-a-z,   c,     -x,   1],
+            [y,       x,     -b,   0],
+            [0,       0,     -d,   0]
+        ])
+
 
 class LorenzHyperchaos(HyperchaosSystem):
     def equations(self, s, t, sigma, r, b, k):
@@ -104,6 +237,16 @@ class LorenzHyperchaos(HyperchaosSystem):
             x*y - b*z,
             -k*y
         ]
+
+    def jacobian(self, state, *params):
+        sigma, r, b, k = params
+        x, y, z, w = state
+        return np.array([
+            [-sigma,  sigma,   0,   1],
+            [r-z,     -1,     -x,   0],
+            [y,        x,     -b,   0],
+            [0,       -k,      0,   0]
+        ])
 
 
 # =========================================================
@@ -117,9 +260,9 @@ class ChaoticCrypto:
         np.random.seed(seed_int)
         # Use custom initial conditions if provided
         if initial_conditions is None:
-            ic1 = [-10.0, -6.0, 0.0, 10.0]#[0.25, 3 ,0.5, 0.05]
-            ic2 = [0.2, 0.1, 0.1, 0.0]
-            ic3 = [0.1, 0.0, 0.0, 0.1]
+            ic1 = [0.25, 3.0, 0.5, 0.05]  # Rössler: from literature
+            ic2 = [0.2, 0.1, 0.1, 0.0]     # Chen: works well
+            ic3 = [0.1, 0.0, 0.0, 0.1]     # Lorenz: works well
         else:
             ic1 = initial_conditions.get('system1', [-10.0, -6.0, 0.0, 10.0])#[0.25, 3 ,0.5, .05])
             ic2 = initial_conditions.get('system2', [0.2, 0.1, 0.1, 0.0])
@@ -128,7 +271,7 @@ class ChaoticCrypto:
         self.system1 = RosslerHyperchaos(
             "Rössler Hyperchaos",
             ic1,
-            [0.25, 3.0, 5.7, 0.05]
+            [0.25, 3.0, 0.28, 0.05]  # Standard Rössler hyperchaos parameters
         )
         self.system2 = ChenHyperchaos(
             "Chen Hyperchaos",
@@ -154,11 +297,16 @@ class ChaoticCrypto:
 
         self.bitstreams = [self.bitstream1, self.bitstream2, self.bitstream3]
 
-        self.key1 = self.generate_key(self.bitstream1)
-        self.key2 = self.generate_key(self.bitstream2)
-        self.key3 = self.generate_key(self.bitstream3)
+        # Convert bitstreams to byte arrays (keys are the bitstreams themselves)
+        self.key1 = self.bitstream_to_bytes(self.bitstream1)
+        self.key2 = self.bitstream_to_bytes(self.bitstream2)
+        self.key3 = self.bitstream_to_bytes(self.bitstream3)
 
         self.keys = [self.key1, self.key2, self.key3]
+
+        print(f"    ↳ Key 1 length: {len(self.key1)} bytes ({len(self.bitstream1)} bits)")
+        print(f"    ↳ Key 2 length: {len(self.key2)} bytes ({len(self.bitstream2)} bits)")
+        print(f"    ↳ Key 3 length: {len(self.key3)} bytes ({len(self.bitstream3)} bits)")
 
         self.sbox1 = self.generate_sbox(self.bitstream1)
         self.sbox2 = self.generate_sbox(self.bitstream2)
@@ -166,12 +314,13 @@ class ChaoticCrypto:
 
         self.sboxes = [self.sbox1, self.sbox2, self.sbox3]
 
-    def generate_key(self, bits):
+    def bitstream_to_bytes(self, bits):
+        """Convert bitstream to bytes by packing every 8 bits"""
+        # Trim to multiple of 8
         bits = bits[:len(bits)//8 * 8]
-        key = np.packbits(bits)
-        digest = hashlib.sha256(key).digest()
-        print(f"    ↳ Key SHA-256: {digest.hex()[:32]}...")
-        return digest
+        # Pack bits into bytes
+        byte_array = np.packbits(bits)
+        return bytes(byte_array)
 
     def generate_sbox(self, bits, size=256):
         sbox = np.arange(size, dtype=np.uint8)
@@ -186,13 +335,15 @@ class ChaoticCrypto:
         return sbox
 
     def extend_key(self, key, n):
-        out = bytearray()
-        ctr = 0
-        while len(out) < n:
-            h = hashlib.sha256(key + ctr.to_bytes(8, "big")).digest()
-            out.extend(h)
-            ctr += 1
-        return bytes(out[:n])
+        """Extend or truncate the chaotic keystream to match data length"""
+        if len(key) >= n:
+            # If key is longer than needed, just use the first n bytes
+            return key[:n]
+        else:
+            # If key is shorter, cycle it (repeat the pattern)
+            repeats = (n // len(key)) + 1
+            extended = (key * repeats)[:n]
+            return extended
 
     def xor(self, data, key):
         k = np.frombuffer(self.extend_key(key, len(data)), dtype=np.uint8)
