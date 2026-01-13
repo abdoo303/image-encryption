@@ -273,7 +273,7 @@ class ChaoticCrypto:
             # Rössler hyperchaos: proven parameters from literature
             # Reference: Rössler (1979), a=0.25, b=3.0, c=0.5, d=0.05
 
-            ic1 = [0.1, 0.1, 0.1, 0.1]
+            ic1 = [-100, 40, -50, 0.04]
             ic2 = [0.2, 0.1, 0.1, 0.0]     # Chen: works well
             ic3 = [0.1, 0.0, 0.0, 0.1]     # Lorenz: works well
         else:
