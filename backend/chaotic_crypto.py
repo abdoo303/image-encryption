@@ -215,6 +215,39 @@ class RosslerHyperchaos(HyperchaosSystem):
             [z,   0,   x,   0],
             [0,   0,  -c,   d]
         ])
+
+    def to_bitstream(self):
+        """Override to use only the x variable for Rössler system with better bit extraction"""
+        if self.solution is None:
+            self.solve()
+
+        print(f"[+] Generating bitstream from {self.name} (using x variable only)...")
+
+        # Use only the first variable (x)
+        x = self.solution[:, 0]
+
+        # Normalize to [0, 1]
+        x = (x - x.min()) / (x.max() - x.min() + 1e-12)
+
+        # Convert to 32-bit integers for more precision
+        # This preserves more of the chaotic dynamics
+        x_scaled = (x * (2**32 - 1)).astype(np.uint32)
+
+        # Extract bits from multiple bit positions and XOR them together
+        # This creates a more random-looking bitstream
+        stream = np.zeros(len(x), dtype=np.uint8)
+
+        # Use bits from positions 0, 8, 16, 24 (every 8th bit)
+        for shift in [0, 8, 16, 24]:
+            stream ^= ((x_scaled >> shift) & 1).astype(np.uint8)
+
+        ones = int(np.sum(stream))
+        zeros = len(stream) - ones
+
+        print(f"    ↳ Bitstream length: {len(stream)}")
+        print(f"    ↳ Balance: 1s={ones} | 0s={zeros} | bias={abs(ones-zeros)/len(stream):.4f}")
+
+        return stream
 class ShakirEtal(HyperchaosSystem):
     def equations(self, s, t, a, b, c, d, e, f, g, h, i, j):
         x, y, z, w = s
