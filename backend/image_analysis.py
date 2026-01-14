@@ -451,3 +451,42 @@ class ImageAnalyzer:
             'median': float(np.median(flat)),
             'variance': float(np.var(flat))
         }
+
+    def calculate_npcr_uaci(self, image1, image2):
+        """
+        Calculate NPCR and UACI between two images
+
+        NPCR (Number of Pixels Change Rate): Percentage of different pixels
+        Ideal value: >99.6% (indicates strong key sensitivity)
+
+        UACI (Unified Average Changing Intensity): Average intensity difference
+        Ideal value: ~33.46% (for 8-bit images)
+
+        Args:
+            image1, image2: numpy arrays of same shape
+
+        Returns:
+            Dictionary with NPCR and UACI values
+        """
+        if image1.shape != image2.shape:
+            raise ValueError("Images must have the same shape")
+
+        img1_flat = image1.flatten().astype(np.int32)
+        img2_flat = image2.flatten().astype(np.int32)
+
+        # NPCR: percentage of different pixels
+        different_pixels = np.sum(img1_flat != img2_flat)
+        total_pixels = len(img1_flat)
+        npcr = (different_pixels / total_pixels) * 100
+
+        # UACI: average intensity difference normalized by max intensity
+        uaci = (np.sum(np.abs(img1_flat - img2_flat)) / (total_pixels * 255)) * 100
+
+        return {
+            'npcr': float(npcr),
+            'uaci': float(uaci),
+            'npcr_ideal': 99.6094,  # Theoretical ideal for large images
+            'uaci_ideal': 33.4635,  # Theoretical ideal for 8-bit images
+            'npcr_pass': npcr > 99.6,
+            'uaci_pass': 33.0 < uaci < 34.0
+        }

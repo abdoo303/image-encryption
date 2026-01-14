@@ -348,15 +348,25 @@ class ChaoticCrypto:
         return sbox
 
     def extend_key(self, key, n):
-        """Extend or truncate the chaotic keystream to match data length"""
+        """Extend or truncate the chaotic keystream to match data length using hash chaining"""
         if len(key) >= n:
             # If key is longer than needed, just use the first n bytes
             return key[:n]
         else:
-            # If key is shorter, cycle it (repeat the pattern)
-            repeats = (n // len(key)) + 1
-            extended = (key * repeats)[:n]
-            return extended
+            # If key is shorter, use hash chaining to extend it
+            # This prevents predictable patterns from simple repetition
+            extended = bytearray(key)
+            counter = 0
+
+            while len(extended) < n:
+                # Create a hash from: original key + current extended portion + counter
+                # This ensures each block depends on all previous blocks
+                hash_input = key + bytes(extended[-min(32, len(extended)):]) + counter.to_bytes(4, 'big')
+                hash_output = hashlib.sha256(hash_input).digest()
+                extended.extend(hash_output)
+                counter += 1
+
+            return bytes(extended[:n])
 
     def xor(self, data, key):
         k = np.frombuffer(self.extend_key(key, len(data)), dtype=np.uint8)
