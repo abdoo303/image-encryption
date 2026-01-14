@@ -9,26 +9,26 @@
     "seed": "benchmark-seed-2025",
     "rounds": 3,
     "timing": {
-      "initialization": 1.7027337551116943,
-      "encryption": 0.2866849899291992,
-      "decryption": 0.29285311698913574,
-      "total": 2.2822718620300293
+      "initialization": 0.1769871711730957,
+      "encryption": 0.2881629467010498,
+      "decryption": 0.2899661064147949,
+      "total": 0.7551162242889404
     },
     "speed": {
-      "encryption_mbps": 2.616111852194364,
-      "decryption_mbps": 2.5610108156295412,
+      "encryption_mbps": 2.6026940957751794,
+      "decryption_mbps": 2.5865091933438906,
       "image_size_mb": 0.75
     },
     "quality": {
       "perfect_reconstruction": true,
-      "mse_encrypted": 21739.77189763387,
+      "mse_encrypted": 21693.805446624756,
       "mse_decrypted": 0.0,
-      "psnr_encrypted": 4.758253778848206,
+      "psnr_encrypted": 4.76744619849201,
       "psnr_decrypted": Infinity
     },
     "entropy": {
       "original": 0.9999999997114609,
-      "encrypted": 7.9997524428157405
+      "encrypted": 7.999766693606718
     },
     "correlation": {
       "original": {
@@ -37,9 +37,9 @@
         "diagonal": 0.8876033060611583
       },
       "encrypted": {
-        "horizontal": 0.014365747521700091,
-        "vertical": 0.01419834855483439,
-        "diagonal": -0.018975842739748606
+        "horizontal": -0.0003993897746397,
+        "vertical": -0.0034076722460966856,
+        "diagonal": 0.03519242082009321
       }
     },
     "key_sensitivity": {
@@ -51,13 +51,13 @@
       "uaci_pass": false
     },
     "key_space": {
-      "total_parameters": 24,
+      "total_parameters": 25,
       "initial_conditions": 12,
-      "system_parameters": 12,
+      "system_parameters": 13,
       "precision_decimal": 15,
-      "key_space_bits": 1195.8941141594503,
-      "key_space_decimal": "10^360",
-      "comparison_aes256": 4.671461383435353,
+      "key_space_bits": 1245.7230355827608,
+      "key_space_decimal": "10^375",
+      "comparison_aes256": 4.866105607745159,
       "systems_breakdown": {
         "R\u00f6ssler": {
           "initial_conditions": 4,
@@ -65,7 +65,7 @@
         },
         "Chen": {
           "initial_conditions": 4,
-          "parameters": 4
+          "parameters": 5
         },
         "Lorenz": {
           "initial_conditions": 4,
@@ -84,26 +84,26 @@
     "seed": "benchmark-seed-2025",
     "rounds": 3,
     "timing": {
-      "initialization": 1.6883556842803955,
-      "encryption": 0.28244805335998535,
-      "decryption": 0.28584885597229004,
-      "total": 2.256652593612671
+      "initialization": 0.17577600479125977,
+      "encryption": 0.2858257293701172,
+      "decryption": 0.28740787506103516,
+      "total": 0.7490096092224121
     },
     "speed": {
-      "encryption_mbps": 2.655355528487608,
-      "decryption_mbps": 2.623764217802937,
+      "encryption_mbps": 2.6239765106269393,
+      "decryption_mbps": 2.6095318363866222,
       "image_size_mb": 0.75
     },
     "quality": {
       "perfect_reconstruction": true,
-      "mse_encrypted": 12199.184816996256,
+      "mse_encrypted": 12212.09570058187,
       "mse_decrypted": 0.0,
-      "psnr_encrypted": 7.267495499725568,
+      "psnr_encrypted": 7.262901618616786,
       "psnr_decrypted": Infinity
     },
     "entropy": {
       "original": 7.327189307104915,
-      "encrypted": 7.999789177935954
+      "encrypted": 7.999769310938071
     },
     "correlation": {
       "original": {
@@ -112,27 +112,27 @@
         "diagonal": 0.9686308606738594
       },
       "encrypted": {
-        "horizontal": -0.012742884167120685,
-        "vertical": 0.015539317534594593,
-        "diagonal": 0.013457403763432147
+        "horizontal": -0.008260033342756792,
+        "vertical": 0.002417400227716115,
+        "diagonal": -0.018995721369873764
       }
     },
     "key_sensitivity": {
-      "npcr": 99.60823059082031,
-      "uaci": 33.4671374551611,
+      "npcr": 0.0,
+      "uaci": 0.0,
       "npcr_ideal": 99.6094,
       "uaci_ideal": 33.4635,
-      "npcr_pass": true,
-      "uaci_pass": true
+      "npcr_pass": false,
+      "uaci_pass": false
     },
     "key_space": {
-      "total_parameters": 24,
+      "total_parameters": 25,
       "initial_conditions": 12,
-      "system_parameters": 12,
+      "system_parameters": 13,
       "precision_decimal": 15,
-      "key_space_bits": 1195.8941141594503,
-      "key_space_decimal": "10^360",
-      "comparison_aes256": 4.671461383435353,
+      "key_space_bits": 1245.7230355827608,
+      "key_space_decimal": "10^375",
+      "comparison_aes256": 4.866105607745159,
       "systems_breakdown": {
         "R\u00f6ssler": {
           "initial_conditions": 4,
@@ -140,7 +140,7 @@
         },
         "Chen": {
           "initial_conditions": 4,
-          "parameters": 4
+          "parameters": 5
         },
         "Lorenz": {
           "initial_conditions": 4,
@@ -159,26 +159,26 @@
     "seed": "benchmark-seed-2025",
     "rounds": 3,
     "timing": {
-      "initialization": 1.6948838233947754,
-      "encryption": 0.285491943359375,
-      "decryption": 0.2880070209503174,
-      "total": 2.2683827877044678
+      "initialization": 0.17676496505737305,
+      "encryption": 0.2872447967529297,
+      "decryption": 0.28897905349731445,
+      "total": 0.7529888153076172
     },
     "speed": {
-      "encryption_mbps": 2.6270443613041152,
-      "decryption_mbps": 2.604103183058786,
+      "encryption_mbps": 2.6110133533423197,
+      "decryption_mbps": 2.595343817910906,
       "image_size_mb": 0.75
     },
     "quality": {
       "perfect_reconstruction": true,
-      "mse_encrypted": 10898.448787689209,
+      "mse_encrypted": 10870.658790588379,
       "mse_decrypted": 0.0,
-      "psnr_encrypted": 7.757156731005276,
+      "psnr_encrypted": 7.768244965932438,
       "psnr_decrypted": Infinity
     },
     "entropy": {
       "original": 7.231694974122718,
-      "encrypted": 7.999747175074288
+      "encrypted": 7.999746414410728
     },
     "correlation": {
       "original": {
@@ -187,9 +187,9 @@
         "diagonal": 0.9723234999827661
       },
       "encrypted": {
-        "horizontal": 0.0012301844880211847,
-        "vertical": 0.0003524124971236992,
-        "diagonal": -0.010579390987826197
+        "horizontal": 0.014166415753939498,
+        "vertical": -0.003168695403768075,
+        "diagonal": 0.024711726972064932
       }
     },
     "key_sensitivity": {
@@ -201,13 +201,13 @@
       "uaci_pass": false
     },
     "key_space": {
-      "total_parameters": 24,
+      "total_parameters": 25,
       "initial_conditions": 12,
-      "system_parameters": 12,
+      "system_parameters": 13,
       "precision_decimal": 15,
-      "key_space_bits": 1195.8941141594503,
-      "key_space_decimal": "10^360",
-      "comparison_aes256": 4.671461383435353,
+      "key_space_bits": 1245.7230355827608,
+      "key_space_decimal": "10^375",
+      "comparison_aes256": 4.866105607745159,
       "systems_breakdown": {
         "R\u00f6ssler": {
           "initial_conditions": 4,
@@ -215,7 +215,7 @@
         },
         "Chen": {
           "initial_conditions": 4,
-          "parameters": 4
+          "parameters": 5
         },
         "Lorenz": {
           "initial_conditions": 4,
@@ -234,26 +234,26 @@
     "seed": "benchmark-seed-2025",
     "rounds": 3,
     "timing": {
-      "initialization": 1.6896460056304932,
-      "encryption": 0.28351712226867676,
-      "decryption": 0.2864949703216553,
-      "total": 2.259658098220825
+      "initialization": 0.20308685302734375,
+      "encryption": 0.28656888008117676,
+      "decryption": 0.28971004486083984,
+      "total": 0.7793657779693604
     },
     "speed": {
-      "encryption_mbps": 2.6453428773492482,
-      "decryption_mbps": 2.617847004985657,
+      "encryption_mbps": 2.6171718289423,
+      "decryption_mbps": 2.5887952913757517,
       "image_size_mb": 0.75
     },
     "quality": {
       "perfect_reconstruction": true,
-      "mse_encrypted": 10015.328598022461,
+      "mse_encrypted": 10008.92561086019,
       "mse_decrypted": 0.0,
-      "psnr_encrypted": 8.124151580154695,
+      "psnr_encrypted": 8.126928994042915,
       "psnr_decrypted": Infinity
     },
     "entropy": {
       "original": 7.972978028426462,
-      "encrypted": 7.9997369536105065
+      "encrypted": 7.99976605370076
     },
     "correlation": {
       "original": {
@@ -262,27 +262,27 @@
         "diagonal": 0.9999535459338621
       },
       "encrypted": {
-        "horizontal": 0.0034151891129925145,
-        "vertical": -0.0016100848498504198,
-        "diagonal": 0.018665387013384042
+        "horizontal": 0.008087956439419617,
+        "vertical": -0.0023176337924663017,
+        "diagonal": 0.0030118797812587078
       }
     },
     "key_sensitivity": {
-      "npcr": 99.39193725585938,
-      "uaci": 33.41639300577002,
+      "npcr": 0.0,
+      "uaci": 0.0,
       "npcr_ideal": 99.6094,
       "uaci_ideal": 33.4635,
       "npcr_pass": false,
-      "uaci_pass": true
+      "uaci_pass": false
     },
     "key_space": {
-      "total_parameters": 24,
+      "total_parameters": 25,
       "initial_conditions": 12,
-      "system_parameters": 12,
+      "system_parameters": 13,
       "precision_decimal": 15,
-      "key_space_bits": 1195.8941141594503,
-      "key_space_decimal": "10^360",
-      "comparison_aes256": 4.671461383435353,
+      "key_space_bits": 1245.7230355827608,
+      "key_space_decimal": "10^375",
+      "comparison_aes256": 4.866105607745159,
       "systems_breakdown": {
         "R\u00f6ssler": {
           "initial_conditions": 4,
@@ -290,7 +290,7 @@
         },
         "Chen": {
           "initial_conditions": 4,
-          "parameters": 4
+          "parameters": 5
         },
         "Lorenz": {
           "initial_conditions": 4,
@@ -309,26 +309,26 @@
     "seed": "benchmark-seed-2025",
     "rounds": 3,
     "timing": {
-      "initialization": 1.7003860473632812,
-      "encryption": 0.2834780216217041,
-      "decryption": 0.28725481033325195,
-      "total": 2.2711188793182373
+      "initialization": 0.17627811431884766,
+      "encryption": 0.2854800224304199,
+      "decryption": 0.2868328094482422,
+      "total": 0.7485909461975098
     },
     "speed": {
-      "encryption_mbps": 2.6457077543770233,
-      "decryption_mbps": 2.610922334529072,
+      "encryption_mbps": 2.6271540600806755,
+      "decryption_mbps": 2.61476363684725,
       "image_size_mb": 0.75
     },
     "quality": {
       "perfect_reconstruction": true,
-      "mse_encrypted": 21738.0460357666,
+      "mse_encrypted": 21689.26992034912,
       "mse_decrypted": 0.0,
-      "psnr_encrypted": 4.7585985672122515,
+      "psnr_encrypted": 4.76835427336893,
       "psnr_decrypted": Infinity
     },
     "entropy": {
       "original": -1.4426951601859516e-10,
-      "encrypted": 7.999744238863961
+      "encrypted": 7.999792434128674
     },
     "correlation": {
       "original": {
@@ -337,9 +337,9 @@
         "diagonal": NaN
       },
       "encrypted": {
-        "horizontal": 0.01909593881171033,
-        "vertical": -0.0019438181841966089,
-        "diagonal": -0.01268831767929891
+        "horizontal": -0.00848630806197038,
+        "vertical": -0.023409017344607364,
+        "diagonal": 0.008466330582369456
       }
     },
     "key_sensitivity": {
@@ -351,13 +351,13 @@
       "uaci_pass": false
     },
     "key_space": {
-      "total_parameters": 24,
+      "total_parameters": 25,
       "initial_conditions": 12,
-      "system_parameters": 12,
+      "system_parameters": 13,
       "precision_decimal": 15,
-      "key_space_bits": 1195.8941141594503,
-      "key_space_decimal": "10^360",
-      "comparison_aes256": 4.671461383435353,
+      "key_space_bits": 1245.7230355827608,
+      "key_space_decimal": "10^375",
+      "comparison_aes256": 4.866105607745159,
       "systems_breakdown": {
         "R\u00f6ssler": {
           "initial_conditions": 4,
@@ -365,7 +365,82 @@
         },
         "Chen": {
           "initial_conditions": 4,
+          "parameters": 5
+        },
+        "Lorenz": {
+          "initial_conditions": 4,
           "parameters": 4
+        }
+      }
+    }
+  },
+  {
+    "image_name": "Lenna_(test_image).png",
+    "image_size": [
+      512,
+      512,
+      3
+    ],
+    "seed": "benchmark-seed-2025",
+    "rounds": 3,
+    "timing": {
+      "initialization": 0.17548489570617676,
+      "encryption": 0.28587794303894043,
+      "decryption": 0.28873395919799805,
+      "total": 0.7500967979431152
+    },
+    "speed": {
+      "encryption_mbps": 2.623497259100678,
+      "decryption_mbps": 2.5975468977852056,
+      "image_size_mb": 0.75
+    },
+    "quality": {
+      "perfect_reconstruction": true,
+      "mse_encrypted": 8921.24481455485,
+      "mse_decrypted": 0.0,
+      "psnr_encrypted": 8.62654903535137,
+      "psnr_decrypted": Infinity
+    },
+    "entropy": {
+      "original": 7.75019744324298,
+      "encrypted": 7.9997110343444735
+    },
+    "correlation": {
+      "original": {
+        "horizontal": 0.9687730838712338,
+        "vertical": 0.9841483803828327,
+        "diagonal": 0.9561455193803023
+      },
+      "encrypted": {
+        "horizontal": 0.011334908737664044,
+        "vertical": 0.024605555425766503,
+        "diagonal": 0.014520691547527264
+      }
+    },
+    "key_sensitivity": {
+      "npcr": 0.0,
+      "uaci": 0.0,
+      "npcr_ideal": 99.6094,
+      "uaci_ideal": 33.4635,
+      "npcr_pass": false,
+      "uaci_pass": false
+    },
+    "key_space": {
+      "total_parameters": 25,
+      "initial_conditions": 12,
+      "system_parameters": 13,
+      "precision_decimal": 15,
+      "key_space_bits": 1245.7230355827608,
+      "key_space_decimal": "10^375",
+      "comparison_aes256": 4.866105607745159,
+      "systems_breakdown": {
+        "R\u00f6ssler": {
+          "initial_conditions": 4,
+          "parameters": 4
+        },
+        "Chen": {
+          "initial_conditions": 4,
+          "parameters": 5
         },
         "Lorenz": {
           "initial_conditions": 4,
@@ -384,26 +459,26 @@
     "seed": "benchmark-seed-2025",
     "rounds": 3,
     "timing": {
-      "initialization": 1.7182669639587402,
-      "encryption": 0.2868831157684326,
-      "decryption": 0.29076409339904785,
-      "total": 2.2959141731262207
+      "initialization": 0.1762831211090088,
+      "encryption": 0.28626203536987305,
+      "decryption": 0.28892993927001953,
+      "total": 0.7514750957489014
     },
     "speed": {
-      "encryption_mbps": 2.614305125594731,
-      "decryption_mbps": 2.5794106529195533,
+      "encryption_mbps": 2.619977179408164,
+      "decryption_mbps": 2.595784991665704,
       "image_size_mb": 0.75
     },
     "quality": {
       "perfect_reconstruction": true,
-      "mse_encrypted": 21734.244304656982,
+      "mse_encrypted": 21712.25896581014,
       "mse_decrypted": 0.0,
-      "psnr_encrypted": 4.759358164111273,
+      "psnr_encrypted": 4.763753506171144,
       "psnr_decrypted": Infinity
     },
     "entropy": {
       "original": -1.4426951601859516e-10,
-      "encrypted": 7.999795717732378
+      "encrypted": 7.999784812440442
     },
     "correlation": {
       "original": {
@@ -412,27 +487,27 @@
         "diagonal": NaN
       },
       "encrypted": {
-        "horizontal": -0.011580076538665007,
-        "vertical": 0.011225597102928793,
-        "diagonal": -0.02605411551898293
+        "horizontal": 0.004350248570941894,
+        "vertical": 0.014874310119958762,
+        "diagonal": -0.006822186426105638
       }
     },
     "key_sensitivity": {
-      "npcr": 99.11664326985678,
-      "uaci": 33.271320816738154,
+      "npcr": 0.0,
+      "uaci": 0.0,
       "npcr_ideal": 99.6094,
       "uaci_ideal": 33.4635,
       "npcr_pass": false,
-      "uaci_pass": true
+      "uaci_pass": false
     },
     "key_space": {
-      "total_parameters": 24,
+      "total_parameters": 25,
       "initial_conditions": 12,
-      "system_parameters": 12,
+      "system_parameters": 13,
       "precision_decimal": 15,
-      "key_space_bits": 1195.8941141594503,
-      "key_space_decimal": "10^360",
-      "comparison_aes256": 4.671461383435353,
+      "key_space_bits": 1245.7230355827608,
+      "key_space_decimal": "10^375",
+      "comparison_aes256": 4.866105607745159,
       "systems_breakdown": {
         "R\u00f6ssler": {
           "initial_conditions": 4,
@@ -440,7 +515,7 @@
         },
         "Chen": {
           "initial_conditions": 4,
-          "parameters": 4
+          "parameters": 5
         },
         "Lorenz": {
           "initial_conditions": 4,
@@ -459,26 +534,26 @@
     "seed": "benchmark-seed-2025",
     "rounds": 3,
     "timing": {
-      "initialization": 1.6905019283294678,
-      "encryption": 0.28627777099609375,
-      "decryption": 0.2913041114807129,
-      "total": 2.2680838108062744
+      "initialization": 0.17316985130310059,
+      "encryption": 0.28924107551574707,
+      "decryption": 0.2879519462585449,
+      "total": 0.7503628730773926
     },
     "speed": {
-      "encryption_mbps": 2.6198331689896865,
-      "decryption_mbps": 2.57462895455788,
+      "encryption_mbps": 2.5929927091533305,
+      "decryption_mbps": 2.6046012529000016,
       "image_size_mb": 0.75
     },
     "quality": {
       "perfect_reconstruction": true,
-      "mse_encrypted": 7371.111475626628,
+      "mse_encrypted": 7383.713101704915,
       "mse_decrypted": 0.0,
-      "psnr_encrypted": 9.455473816470809,
+      "psnr_encrypted": 9.448055472767965,
       "psnr_decrypted": Infinity
     },
     "entropy": {
       "original": 7.391069405618879,
-      "encrypted": 7.999762742542313
+      "encrypted": 7.999762089092557
     },
     "correlation": {
       "original": {
@@ -487,27 +562,27 @@
         "diagonal": 0.973560135718348
       },
       "encrypted": {
-        "horizontal": 0.00502937238297637,
-        "vertical": -0.007253337702144342,
-        "diagonal": 0.0010307983764146437
+        "horizontal": -0.001582130453515545,
+        "vertical": 0.01199739455564843,
+        "diagonal": 0.005051677135333106
       }
     },
     "key_sensitivity": {
-      "npcr": 99.37044779459634,
-      "uaci": 33.32150328393076,
+      "npcr": 0.0,
+      "uaci": 0.0,
       "npcr_ideal": 99.6094,
       "uaci_ideal": 33.4635,
       "npcr_pass": false,
-      "uaci_pass": true
+      "uaci_pass": false
     },
     "key_space": {
-      "total_parameters": 24,
+      "total_parameters": 25,
       "initial_conditions": 12,
-      "system_parameters": 12,
+      "system_parameters": 13,
       "precision_decimal": 15,
-      "key_space_bits": 1195.8941141594503,
-      "key_space_decimal": "10^360",
-      "comparison_aes256": 4.671461383435353,
+      "key_space_bits": 1245.7230355827608,
+      "key_space_decimal": "10^375",
+      "comparison_aes256": 4.866105607745159,
       "systems_breakdown": {
         "R\u00f6ssler": {
           "initial_conditions": 4,
@@ -515,7 +590,7 @@
         },
         "Chen": {
           "initial_conditions": 4,
-          "parameters": 4
+          "parameters": 5
         },
         "Lorenz": {
           "initial_conditions": 4,
@@ -534,26 +609,26 @@
     "seed": "benchmark-seed-2025",
     "rounds": 3,
     "timing": {
-      "initialization": 1.719912052154541,
-      "encryption": 0.2855489253997803,
-      "decryption": 0.28789687156677246,
-      "total": 2.2933578491210938
+      "initialization": 0.17605924606323242,
+      "encryption": 0.28601789474487305,
+      "decryption": 0.28912997245788574,
+      "total": 0.7512071132659912
     },
     "speed": {
-      "encryption_mbps": 2.6265201276802883,
-      "decryption_mbps": 2.6050995133028083,
+      "encryption_mbps": 2.6222135529981343,
+      "decryption_mbps": 2.593989110240876,
       "image_size_mb": 0.75
     },
     "quality": {
       "perfect_reconstruction": true,
-      "mse_encrypted": 11755.67060216268,
+      "mse_encrypted": 11708.162268320719,
       "mse_decrypted": 0.0,
-      "psnr_encrypted": 7.42832952374048,
+      "psnr_encrypted": 7.445916279954692,
       "psnr_decrypted": Infinity
     },
     "entropy": {
       "original": 7.8017241865115325,
-      "encrypted": 7.999762346471739
+      "encrypted": 7.999792551918459
     },
     "correlation": {
       "original": {
@@ -562,27 +637,27 @@
         "diagonal": 0.9655080995164043
       },
       "encrypted": {
-        "horizontal": 0.009330802376204624,
-        "vertical": 0.01564959967315813,
-        "diagonal": 0.013478638070419177
+        "horizontal": -0.01554507182404617,
+        "vertical": 0.003588535736543138,
+        "diagonal": 0.005601237480574008
       }
     },
     "key_sensitivity": {
-      "npcr": 99.10354614257812,
-      "uaci": 33.279693703246274,
+      "npcr": 0.0,
+      "uaci": 0.0,
       "npcr_ideal": 99.6094,
       "uaci_ideal": 33.4635,
       "npcr_pass": false,
-      "uaci_pass": true
+      "uaci_pass": false
     },
     "key_space": {
-      "total_parameters": 24,
+      "total_parameters": 25,
       "initial_conditions": 12,
-      "system_parameters": 12,
+      "system_parameters": 13,
       "precision_decimal": 15,
-      "key_space_bits": 1195.8941141594503,
-      "key_space_decimal": "10^360",
-      "comparison_aes256": 4.671461383435353,
+      "key_space_bits": 1245.7230355827608,
+      "key_space_decimal": "10^375",
+      "comparison_aes256": 4.866105607745159,
       "systems_breakdown": {
         "R\u00f6ssler": {
           "initial_conditions": 4,
@@ -590,7 +665,7 @@
         },
         "Chen": {
           "initial_conditions": 4,
-          "parameters": 4
+          "parameters": 5
         },
         "Lorenz": {
           "initial_conditions": 4,

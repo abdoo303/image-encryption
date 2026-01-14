@@ -236,8 +236,6 @@ class ComprehensiveBenchmark:
             avg_decrypt_speed = np.mean([r['speed']['decryption_mbps'] for r in self.results])
             avg_entropy_orig = np.mean([r['entropy']['original'] for r in self.results])
             avg_entropy_enc = np.mean([r['entropy']['encrypted'] for r in self.results])
-            avg_npcr = np.mean([r['key_sensitivity']['npcr'] for r in self.results])
-            avg_uaci = np.mean([r['key_sensitivity']['uaci'] for r in self.results])
             avg_corr_orig = np.mean([np.mean([r['correlation']['original'][d]
                                      for d in ['horizontal', 'vertical', 'diagonal']])
                                      for r in self.results])
@@ -260,9 +258,6 @@ class ComprehensiveBenchmark:
             f.write(f"Correlation (original images): {avg_corr_orig:.6f}\n")
             f.write(f"Correlation (encrypted images): {avg_corr_enc:.6f}\n")
             f.write(f"Target correlation: ~0.0000\n\n")
-
-            f.write(f"NPCR (key sensitivity): {avg_npcr:.4f}% (ideal: >99.6%)\n")
-            f.write(f"UACI (key sensitivity): {avg_uaci:.4f}% (ideal: ~33.46%)\n\n")
 
             key_space_bits = self.results[0]['key_space']['key_space_bits']
             f.write(f"Key Space: 2^{key_space_bits:.0f} bits\n")
