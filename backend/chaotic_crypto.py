@@ -215,26 +215,61 @@ class RosslerHyperchaos(HyperchaosSystem):
             [z,   0,   x,   0],
             [0,   0,  -c,   d]
         ])
+class ShakirEtal(HyperchaosSystem):
+    def equations(self, s, t, a, b, c, d, e, f, g, h, i, j):
+        x, y, z, w = s
 
+        dx = -a * x - b * w + c * y * z + z * np.exp(y)
+        dy = d * y + e * x - f * x * z - x * np.exp(z)
+        dz = -g * z + h * x * y
+        dw = -b * w + i * x * z + j * y * z
+
+        return [dx, dy, dz, dw]
+
+    def jacobian(self, state, *params):
+        a, b, c, d, e, f, g, h, i, j = params
+        x, y, z, w = state
+
+        # Compute Jacobian matrix J where J[i,j] = ∂f_i/∂x_j
+        # f = [dx, dy, dz, dw]
+        # state = [x, y, z, w]
+
+        return np.array([
+            [-a,                c*z + np.exp(y),     c*y + np.exp(y),    -b],
+            [e - np.exp(z),     d,                   -f*x - x*np.exp(z), 0],
+            [h*y,               h*x,                 -g,                 0],
+            [i*z,               j*z,                 i*x + j*y,          -b]
+        ])
 
 class ChenHyperchaos(HyperchaosSystem):
-    def equations(self, s, t, a, b, c, d):
-        x, y, z, w = s
+    """
+    Fractional-order 4D Chen system
+    Equations:
+        D^α x = a(y - x) + u
+        D^α y = γx - xz + cy
+        D^α z = xy - bz
+        D^α u = yz + du
+
+    Parameters from literature: a=35, b=3, c=12, γ=28, d=0.5, α=0.97
+    Initial conditions: {x,y,z,u} = 0.3
+    """
+    def equations(self, s, t, a, b, c, gamma, d):
+        x, y, z, u = s
         return [
-            a*(y - x),
-            (c - a)*x - x*z + c*y + w,
-            x*y - b*z,
-            -d*z
+            a*(y - x) + u,           # D^α x
+            gamma*x - x*z + c*y,     # D^α y
+            x*y - b*z,               # D^α z
+            y*z + d*u                # D^α u
         ]
 
     def jacobian(self, state, *params):
-        a, b, c, d = params
-        x, y, z, w = state
+        a, b, c, gamma, d = params
+        x, y, z, u = state
         return np.array([
-            [-a,      a,      0,   0],
-            [c-a-z,   c,     -x,   1],
+            [-a,      a,      0,   1],
+            [gamma-z, c,     -x,   0],
             [y,       x,     -b,   0],
-            [0,       0,     -d,   0]
+            [0,       z,      y,   d]
         ])
 
 
@@ -273,11 +308,11 @@ class ChaoticCrypto:
             # Rössler hyperchaos: proven parameters from literature
             # Reference: Rössler (1979), a=0.25, b=3.0, c=0.5, d=0.05
 
-            ic1 = [-100, 40, -50, 0.04]
-            ic2 = [0.2, 0.1, 0.1, 0.0]     # Chen: works well
-            ic3 = [0.1, 0.0, 0.0, 0.1]     # Lorenz: works well
+            ic1 = [-10, -6, 0, 10]          # Rössler
+            ic2 = [0.3, 0.3, 0.3, 0.3]      # Chen: {x,y,z,u} = 0.3
+            ic3 = [0.1, 0.0, 0.0, 0.1]      # Lorenz: works well
         else:
-            ic1 = initial_conditions.get('system1', [0.27857, 3.0, 0.3, 0.05])
+            ic1 = initial_conditions.get('system1', [0.25, 3.0, 5.7, 0.05])
             ic2 = initial_conditions.get('system2', [0.2, 0.1, 0.1, 0.0])
             ic3 = initial_conditions.get('system3', [0.1, 0.0, 0.0, 0.1])
 
@@ -286,11 +321,30 @@ class ChaoticCrypto:
             ic1,
             [0.25, 3.0, 0.5, 0.05]  # Classic Rössler hyperchaos parameters
         )
+
+        # Fractional-order 4D Chen system
+        # Parameters: a=35, b=3, c=12, γ=28, d=0.5, α=0.97
+        # Initial conditions: {x,y,z,u} = 0.3
         self.system2 = ChenHyperchaos(
             "Chen Hyperchaos",
             ic2,
-            [35, 3, 28, 5]
+            [35, 3, 12, 28, 0.5]  # a, b, c, gamma, d
         )
+
+        # Commented out - replaced by Chen system
+        # self.system2 = ShakirEtal("Shakir et al.",
+        #                           ic2,[
+        #     3.1,
+        #     2.1,
+        #     15.8,
+        #     1.1,
+        #     16.5,
+        #     1.5,
+        #     2.4,
+        #     26.6,
+        #     5.1,
+        #     12.9
+        # ])
         self.system3 = LorenzHyperchaos(
             "Lorenz Hyperchaos",
             ic3,

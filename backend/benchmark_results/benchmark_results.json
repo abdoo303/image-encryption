@@ -1,0 +1,602 @@
+[
+  {
+    "image_name": "checkerboard_512.png",
+    "image_size": [
+      512,
+      512,
+      3
+    ],
+    "seed": "benchmark-seed-2025",
+    "rounds": 3,
+    "timing": {
+      "initialization": 1.7027337551116943,
+      "encryption": 0.2866849899291992,
+      "decryption": 0.29285311698913574,
+      "total": 2.2822718620300293
+    },
+    "speed": {
+      "encryption_mbps": 2.616111852194364,
+      "decryption_mbps": 2.5610108156295412,
+      "image_size_mb": 0.75
+    },
+    "quality": {
+      "perfect_reconstruction": true,
+      "mse_encrypted": 21739.77189763387,
+      "mse_decrypted": 0.0,
+      "psnr_encrypted": 4.758253778848206,
+      "psnr_decrypted": Infinity
+    },
+    "entropy": {
+      "original": 0.9999999997114609,
+      "encrypted": 7.9997524428157405
+    },
+    "correlation": {
+      "original": {
+        "horizontal": 0.9387985475175066,
+        "vertical": 0.9400176214956152,
+        "diagonal": 0.8876033060611583
+      },
+      "encrypted": {
+        "horizontal": 0.014365747521700091,
+        "vertical": 0.01419834855483439,
+        "diagonal": -0.018975842739748606
+      }
+    },
+    "key_sensitivity": {
+      "npcr": 0.0,
+      "uaci": 0.0,
+      "npcr_ideal": 99.6094,
+      "uaci_ideal": 33.4635,
+      "npcr_pass": false,
+      "uaci_pass": false
+    },
+    "key_space": {
+      "total_parameters": 24,
+      "initial_conditions": 12,
+      "system_parameters": 12,
+      "precision_decimal": 15,
+      "key_space_bits": 1195.8941141594503,
+      "key_space_decimal": "10^360",
+      "comparison_aes256": 4.671461383435353,
+      "systems_breakdown": {
+        "R\u00f6ssler": {
+          "initial_conditions": 4,
+          "parameters": 4
+        },
+        "Chen": {
+          "initial_conditions": 4,
+          "parameters": 4
+        },
+        "Lorenz": {
+          "initial_conditions": 4,
+          "parameters": 4
+        }
+      }
+    }
+  },
+  {
+    "image_name": "lena_512.png",
+    "image_size": [
+      512,
+      512,
+      3
+    ],
+    "seed": "benchmark-seed-2025",
+    "rounds": 3,
+    "timing": {
+      "initialization": 1.6883556842803955,
+      "encryption": 0.28244805335998535,
+      "decryption": 0.28584885597229004,
+      "total": 2.256652593612671
+    },
+    "speed": {
+      "encryption_mbps": 2.655355528487608,
+      "decryption_mbps": 2.623764217802937,
+      "image_size_mb": 0.75
+    },
+    "quality": {
+      "perfect_reconstruction": true,
+      "mse_encrypted": 12199.184816996256,
+      "mse_decrypted": 0.0,
+      "psnr_encrypted": 7.267495499725568,
+      "psnr_decrypted": Infinity
+    },
+    "entropy": {
+      "original": 7.327189307104915,
+      "encrypted": 7.999789177935954
+    },
+    "correlation": {
+      "original": {
+        "horizontal": 0.9777271702015508,
+        "vertical": 0.9854435042032276,
+        "diagonal": 0.9686308606738594
+      },
+      "encrypted": {
+        "horizontal": -0.012742884167120685,
+        "vertical": 0.015539317534594593,
+        "diagonal": 0.013457403763432147
+      }
+    },
+    "key_sensitivity": {
+      "npcr": 99.60823059082031,
+      "uaci": 33.4671374551611,
+      "npcr_ideal": 99.6094,
+      "uaci_ideal": 33.4635,
+      "npcr_pass": true,
+      "uaci_pass": true
+    },
+    "key_space": {
+      "total_parameters": 24,
+      "initial_conditions": 12,
+      "system_parameters": 12,
+      "precision_decimal": 15,
+      "key_space_bits": 1195.8941141594503,
+      "key_space_decimal": "10^360",
+      "comparison_aes256": 4.671461383435353,
+      "systems_breakdown": {
+        "R\u00f6ssler": {
+          "initial_conditions": 4,
+          "parameters": 4
+        },
+        "Chen": {
+          "initial_conditions": 4,
+          "parameters": 4
+        },
+        "Lorenz": {
+          "initial_conditions": 4,
+          "parameters": 4
+        }
+      }
+    }
+  },
+  {
+    "image_name": "camera_512.png",
+    "image_size": [
+      512,
+      512,
+      3
+    ],
+    "seed": "benchmark-seed-2025",
+    "rounds": 3,
+    "timing": {
+      "initialization": 1.6948838233947754,
+      "encryption": 0.285491943359375,
+      "decryption": 0.2880070209503174,
+      "total": 2.2683827877044678
+    },
+    "speed": {
+      "encryption_mbps": 2.6270443613041152,
+      "decryption_mbps": 2.604103183058786,
+      "image_size_mb": 0.75
+    },
+    "quality": {
+      "perfect_reconstruction": true,
+      "mse_encrypted": 10898.448787689209,
+      "mse_decrypted": 0.0,
+      "psnr_encrypted": 7.757156731005276,
+      "psnr_decrypted": Infinity
+    },
+    "entropy": {
+      "original": 7.231694974122718,
+      "encrypted": 7.999747175074288
+    },
+    "correlation": {
+      "original": {
+        "horizontal": 0.9792478770753718,
+        "vertical": 0.9844946597572631,
+        "diagonal": 0.9723234999827661
+      },
+      "encrypted": {
+        "horizontal": 0.0012301844880211847,
+        "vertical": 0.0003524124971236992,
+        "diagonal": -0.010579390987826197
+      }
+    },
+    "key_sensitivity": {
+      "npcr": 0.0,
+      "uaci": 0.0,
+      "npcr_ideal": 99.6094,
+      "uaci_ideal": 33.4635,
+      "npcr_pass": false,
+      "uaci_pass": false
+    },
+    "key_space": {
+      "total_parameters": 24,
+      "initial_conditions": 12,
+      "system_parameters": 12,
+      "precision_decimal": 15,
+      "key_space_bits": 1195.8941141594503,
+      "key_space_decimal": "10^360",
+      "comparison_aes256": 4.671461383435353,
+      "systems_breakdown": {
+        "R\u00f6ssler": {
+          "initial_conditions": 4,
+          "parameters": 4
+        },
+        "Chen": {
+          "initial_conditions": 4,
+          "parameters": 4
+        },
+        "Lorenz": {
+          "initial_conditions": 4,
+          "parameters": 4
+        }
+      }
+    }
+  },
+  {
+    "image_name": "gradient_512.png",
+    "image_size": [
+      512,
+      512,
+      3
+    ],
+    "seed": "benchmark-seed-2025",
+    "rounds": 3,
+    "timing": {
+      "initialization": 1.6896460056304932,
+      "encryption": 0.28351712226867676,
+      "decryption": 0.2864949703216553,
+      "total": 2.259658098220825
+    },
+    "speed": {
+      "encryption_mbps": 2.6453428773492482,
+      "decryption_mbps": 2.617847004985657,
+      "image_size_mb": 0.75
+    },
+    "quality": {
+      "perfect_reconstruction": true,
+      "mse_encrypted": 10015.328598022461,
+      "mse_decrypted": 0.0,
+      "psnr_encrypted": 8.124151580154695,
+      "psnr_decrypted": Infinity
+    },
+    "entropy": {
+      "original": 7.972978028426462,
+      "encrypted": 7.9997369536105065
+    },
+    "correlation": {
+      "original": {
+        "horizontal": 0.9999656067979138,
+        "vertical": 0.9999664841829509,
+        "diagonal": 0.9999535459338621
+      },
+      "encrypted": {
+        "horizontal": 0.0034151891129925145,
+        "vertical": -0.0016100848498504198,
+        "diagonal": 0.018665387013384042
+      }
+    },
+    "key_sensitivity": {
+      "npcr": 99.39193725585938,
+      "uaci": 33.41639300577002,
+      "npcr_ideal": 99.6094,
+      "uaci_ideal": 33.4635,
+      "npcr_pass": false,
+      "uaci_pass": true
+    },
+    "key_space": {
+      "total_parameters": 24,
+      "initial_conditions": 12,
+      "system_parameters": 12,
+      "precision_decimal": 15,
+      "key_space_bits": 1195.8941141594503,
+      "key_space_decimal": "10^360",
+      "comparison_aes256": 4.671461383435353,
+      "systems_breakdown": {
+        "R\u00f6ssler": {
+          "initial_conditions": 4,
+          "parameters": 4
+        },
+        "Chen": {
+          "initial_conditions": 4,
+          "parameters": 4
+        },
+        "Lorenz": {
+          "initial_conditions": 4,
+          "parameters": 4
+        }
+      }
+    }
+  },
+  {
+    "image_name": "white_512.png",
+    "image_size": [
+      512,
+      512,
+      3
+    ],
+    "seed": "benchmark-seed-2025",
+    "rounds": 3,
+    "timing": {
+      "initialization": 1.7003860473632812,
+      "encryption": 0.2834780216217041,
+      "decryption": 0.28725481033325195,
+      "total": 2.2711188793182373
+    },
+    "speed": {
+      "encryption_mbps": 2.6457077543770233,
+      "decryption_mbps": 2.610922334529072,
+      "image_size_mb": 0.75
+    },
+    "quality": {
+      "perfect_reconstruction": true,
+      "mse_encrypted": 21738.0460357666,
+      "mse_decrypted": 0.0,
+      "psnr_encrypted": 4.7585985672122515,
+      "psnr_decrypted": Infinity
+    },
+    "entropy": {
+      "original": -1.4426951601859516e-10,
+      "encrypted": 7.999744238863961
+    },
+    "correlation": {
+      "original": {
+        "horizontal": NaN,
+        "vertical": NaN,
+        "diagonal": NaN
+      },
+      "encrypted": {
+        "horizontal": 0.01909593881171033,
+        "vertical": -0.0019438181841966089,
+        "diagonal": -0.01268831767929891
+      }
+    },
+    "key_sensitivity": {
+      "npcr": 0.0,
+      "uaci": 0.0,
+      "npcr_ideal": 99.6094,
+      "uaci_ideal": 33.4635,
+      "npcr_pass": false,
+      "uaci_pass": false
+    },
+    "key_space": {
+      "total_parameters": 24,
+      "initial_conditions": 12,
+      "system_parameters": 12,
+      "precision_decimal": 15,
+      "key_space_bits": 1195.8941141594503,
+      "key_space_decimal": "10^360",
+      "comparison_aes256": 4.671461383435353,
+      "systems_breakdown": {
+        "R\u00f6ssler": {
+          "initial_conditions": 4,
+          "parameters": 4
+        },
+        "Chen": {
+          "initial_conditions": 4,
+          "parameters": 4
+        },
+        "Lorenz": {
+          "initial_conditions": 4,
+          "parameters": 4
+        }
+      }
+    }
+  },
+  {
+    "image_name": "black_512.png",
+    "image_size": [
+      512,
+      512,
+      3
+    ],
+    "seed": "benchmark-seed-2025",
+    "rounds": 3,
+    "timing": {
+      "initialization": 1.7182669639587402,
+      "encryption": 0.2868831157684326,
+      "decryption": 0.29076409339904785,
+      "total": 2.2959141731262207
+    },
+    "speed": {
+      "encryption_mbps": 2.614305125594731,
+      "decryption_mbps": 2.5794106529195533,
+      "image_size_mb": 0.75
+    },
+    "quality": {
+      "perfect_reconstruction": true,
+      "mse_encrypted": 21734.244304656982,
+      "mse_decrypted": 0.0,
+      "psnr_encrypted": 4.759358164111273,
+      "psnr_decrypted": Infinity
+    },
+    "entropy": {
+      "original": -1.4426951601859516e-10,
+      "encrypted": 7.999795717732378
+    },
+    "correlation": {
+      "original": {
+        "horizontal": NaN,
+        "vertical": NaN,
+        "diagonal": NaN
+      },
+      "encrypted": {
+        "horizontal": -0.011580076538665007,
+        "vertical": 0.011225597102928793,
+        "diagonal": -0.02605411551898293
+      }
+    },
+    "key_sensitivity": {
+      "npcr": 99.11664326985678,
+      "uaci": 33.271320816738154,
+      "npcr_ideal": 99.6094,
+      "uaci_ideal": 33.4635,
+      "npcr_pass": false,
+      "uaci_pass": true
+    },
+    "key_space": {
+      "total_parameters": 24,
+      "initial_conditions": 12,
+      "system_parameters": 12,
+      "precision_decimal": 15,
+      "key_space_bits": 1195.8941141594503,
+      "key_space_decimal": "10^360",
+      "comparison_aes256": 4.671461383435353,
+      "systems_breakdown": {
+        "R\u00f6ssler": {
+          "initial_conditions": 4,
+          "parameters": 4
+        },
+        "Chen": {
+          "initial_conditions": 4,
+          "parameters": 4
+        },
+        "Lorenz": {
+          "initial_conditions": 4,
+          "parameters": 4
+        }
+      }
+    }
+  },
+  {
+    "image_name": "cat_512.png",
+    "image_size": [
+      512,
+      512,
+      3
+    ],
+    "seed": "benchmark-seed-2025",
+    "rounds": 3,
+    "timing": {
+      "initialization": 1.6905019283294678,
+      "encryption": 0.28627777099609375,
+      "decryption": 0.2913041114807129,
+      "total": 2.2680838108062744
+    },
+    "speed": {
+      "encryption_mbps": 2.6198331689896865,
+      "decryption_mbps": 2.57462895455788,
+      "image_size_mb": 0.75
+    },
+    "quality": {
+      "perfect_reconstruction": true,
+      "mse_encrypted": 7371.111475626628,
+      "mse_decrypted": 0.0,
+      "psnr_encrypted": 9.455473816470809,
+      "psnr_decrypted": Infinity
+    },
+    "entropy": {
+      "original": 7.391069405618879,
+      "encrypted": 7.999762742542313
+    },
+    "correlation": {
+      "original": {
+        "horizontal": 0.9815669558458442,
+        "vertical": 0.9908735459005855,
+        "diagonal": 0.973560135718348
+      },
+      "encrypted": {
+        "horizontal": 0.00502937238297637,
+        "vertical": -0.007253337702144342,
+        "diagonal": 0.0010307983764146437
+      }
+    },
+    "key_sensitivity": {
+      "npcr": 99.37044779459634,
+      "uaci": 33.32150328393076,
+      "npcr_ideal": 99.6094,
+      "uaci_ideal": 33.4635,
+      "npcr_pass": false,
+      "uaci_pass": true
+    },
+    "key_space": {
+      "total_parameters": 24,
+      "initial_conditions": 12,
+      "system_parameters": 12,
+      "precision_decimal": 15,
+      "key_space_bits": 1195.8941141594503,
+      "key_space_decimal": "10^360",
+      "comparison_aes256": 4.671461383435353,
+      "systems_breakdown": {
+        "R\u00f6ssler": {
+          "initial_conditions": 4,
+          "parameters": 4
+        },
+        "Chen": {
+          "initial_conditions": 4,
+          "parameters": 4
+        },
+        "Lorenz": {
+          "initial_conditions": 4,
+          "parameters": 4
+        }
+      }
+    }
+  },
+  {
+    "image_name": "coffee_512.png",
+    "image_size": [
+      512,
+      512,
+      3
+    ],
+    "seed": "benchmark-seed-2025",
+    "rounds": 3,
+    "timing": {
+      "initialization": 1.719912052154541,
+      "encryption": 0.2855489253997803,
+      "decryption": 0.28789687156677246,
+      "total": 2.2933578491210938
+    },
+    "speed": {
+      "encryption_mbps": 2.6265201276802883,
+      "decryption_mbps": 2.6050995133028083,
+      "image_size_mb": 0.75
+    },
+    "quality": {
+      "perfect_reconstruction": true,
+      "mse_encrypted": 11755.67060216268,
+      "mse_decrypted": 0.0,
+      "psnr_encrypted": 7.42832952374048,
+      "psnr_decrypted": Infinity
+    },
+    "entropy": {
+      "original": 7.8017241865115325,
+      "encrypted": 7.999762346471739
+    },
+    "correlation": {
+      "original": {
+        "horizontal": 0.9786889563645677,
+        "vertical": 0.9850726556071705,
+        "diagonal": 0.9655080995164043
+      },
+      "encrypted": {
+        "horizontal": 0.009330802376204624,
+        "vertical": 0.01564959967315813,
+        "diagonal": 0.013478638070419177
+      }
+    },
+    "key_sensitivity": {
+      "npcr": 99.10354614257812,
+      "uaci": 33.279693703246274,
+      "npcr_ideal": 99.6094,
+      "uaci_ideal": 33.4635,
+      "npcr_pass": false,
+      "uaci_pass": true
+    },
+    "key_space": {
+      "total_parameters": 24,
+      "initial_conditions": 12,
+      "system_parameters": 12,
+      "precision_decimal": 15,
+      "key_space_bits": 1195.8941141594503,
+      "key_space_decimal": "10^360",
+      "comparison_aes256": 4.671461383435353,
+      "systems_breakdown": {
+        "R\u00f6ssler": {
+          "initial_conditions": 4,
+          "parameters": 4
+        },
+        "Chen": {
+          "initial_conditions": 4,
+          "parameters": 4
+        },
+        "Lorenz": {
+          "initial_conditions": 4,
+          "parameters": 4
+        }
+      }
+    }
+  }
+]

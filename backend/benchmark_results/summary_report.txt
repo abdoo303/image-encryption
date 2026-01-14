@@ -1,0 +1,102 @@
+================================================================================
+HYPERCHAOTIC IMAGE ENCRYPTION - BENCHMARK SUMMARY REPORT
+================================================================================
+
+OVERALL PERFORMANCE METRICS
+--------------------------------------------------------------------------------
+Number of test images: 8
+Average encryption speed: 2.63 MB/s
+Average decryption speed: 2.60 MB/s
+
+SECURITY METRICS (Averages)
+--------------------------------------------------------------------------------
+Entropy (original images): 4.8406 bits/pixel
+Entropy (encrypted images): 7.9998 bits/pixel
+Target entropy: 8.0000 bits/pixel
+
+Correlation (original images): nan
+Correlation (encrypted images): 0.002193
+Target correlation: ~0.0000
+
+NPCR (key sensitivity): 62.0739% (ideal: >99.6%)
+UACI (key sensitivity): 20.8445% (ideal: ~33.46%)
+
+Key Space: 2^1196 bits
+AES-256 comparison: 4.67x larger
+
+================================================================================
+DETAILED RESULTS PER IMAGE
+================================================================================
+
+
+Image: checkerboard_512.png
+  Size: (512, 512, 3)
+  Encryption speed: 2.62 MB/s
+  Entropy (encrypted): 7.9998 bits/pixel
+  Correlation (encrypted): H=0.014366, V=0.014198, D=-0.018976
+  NPCR: 0.0000% (FAIL)
+  UACI: 0.0000% (FAIL)
+  Perfect reconstruction: True
+
+Image: lena_512.png
+  Size: (512, 512, 3)
+  Encryption speed: 2.66 MB/s
+  Entropy (encrypted): 7.9998 bits/pixel
+  Correlation (encrypted): H=-0.012743, V=0.015539, D=0.013457
+  NPCR: 99.6082% (PASS)
+  UACI: 33.4671% (PASS)
+  Perfect reconstruction: True
+
+Image: camera_512.png
+  Size: (512, 512, 3)
+  Encryption speed: 2.63 MB/s
+  Entropy (encrypted): 7.9997 bits/pixel
+  Correlation (encrypted): H=0.001230, V=0.000352, D=-0.010579
+  NPCR: 0.0000% (FAIL)
+  UACI: 0.0000% (FAIL)
+  Perfect reconstruction: True
+
+Image: gradient_512.png
+  Size: (512, 512, 3)
+  Encryption speed: 2.65 MB/s
+  Entropy (encrypted): 7.9997 bits/pixel
+  Correlation (encrypted): H=0.003415, V=-0.001610, D=0.018665
+  NPCR: 99.3919% (FAIL)
+  UACI: 33.4164% (PASS)
+  Perfect reconstruction: True
+
+Image: white_512.png
+  Size: (512, 512, 3)
+  Encryption speed: 2.65 MB/s
+  Entropy (encrypted): 7.9997 bits/pixel
+  Correlation (encrypted): H=0.019096, V=-0.001944, D=-0.012688
+  NPCR: 0.0000% (FAIL)
+  UACI: 0.0000% (FAIL)
+  Perfect reconstruction: True
+
+Image: black_512.png
+  Size: (512, 512, 3)
+  Encryption speed: 2.61 MB/s
+  Entropy (encrypted): 7.9998 bits/pixel
+  Correlation (encrypted): H=-0.011580, V=0.011226, D=-0.026054
+  NPCR: 99.1166% (FAIL)
+  UACI: 33.2713% (PASS)
+  Perfect reconstruction: True
+
+Image: cat_512.png
+  Size: (512, 512, 3)
+  Encryption speed: 2.62 MB/s
+  Entropy (encrypted): 7.9998 bits/pixel
+  Correlation (encrypted): H=0.005029, V=-0.007253, D=0.001031
+  NPCR: 99.3704% (FAIL)
+  UACI: 33.3215% (PASS)
+  Perfect reconstruction: True
+
+Image: coffee_512.png
+  Size: (512, 512, 3)
+  Encryption speed: 2.63 MB/s
+  Entropy (encrypted): 7.9998 bits/pixel
+  Correlation (encrypted): H=0.009331, V=0.015650, D=0.013479
+  NPCR: 99.1035% (FAIL)
+  UACI: 33.2797% (PASS)
+  Perfect reconstruction: True
