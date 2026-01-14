@@ -50,7 +50,7 @@ export default function App() {
             console.error("Initialization error:", error);
             alert(
                 "Failed to initialize. Make sure the Flask server is running on " +
-                    REACT_APP_API_BASE_URL
+                    API_BASE_URL
             );
         }
         setLoading(false);
