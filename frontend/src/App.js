@@ -2052,66 +2052,106 @@ const EntropyDisplay = ({ entropy }) => (
 
 const HistogramDisplay = ({ histograms }) => {
     const HistogramChart = ({ data, title, color }) => {
-        const maxValue = Math.max(
-            ...data.Red.values,
-            ...data.Green.values,
-            ...data.Blue.values
-        );
+        // Calculate max per channel for better scaling
+        const maxRed = Math.max(...data.Red.values);
+        const maxGreen = Math.max(...data.Green.values);
+        const maxBlue = Math.max(...data.Blue.values);
+
+        // Use a reasonable sampling to show 64 bars (every 4th value)
+        const sampleRate = 4;
+        const sampledIndices = data.Red.values
+            .map((_, idx) => idx)
+            .filter((idx) => idx % sampleRate === 0);
 
         return (
-            <div style={{ marginBottom: "20px" }}>
-                <h4 style={{ color, marginBottom: "10px", fontSize: "1rem" }}>{title}</h4>
-                <div
-                    style={{
-                        display: "flex",
-                        gap: "10px",
-                        height: "150px",
-                        alignItems: "flex-end",
-                    }}
-                >
-                    {data.Red.values.map((val, idx) => {
-                        if (idx % 8 !== 0) return null; // Sample every 8th value
-                        const redHeight = (data.Red.values[idx] / maxValue) * 100;
-                        const greenHeight = (data.Green.values[idx] / maxValue) * 100;
-                        const blueHeight = (data.Blue.values[idx] / maxValue) * 100;
-
-                        return (
-                            <div
-                                key={idx}
-                                style={{
-                                    flex: 1,
-                                    display: "flex",
-                                    gap: "1px",
-                                    alignItems: "flex-end",
-                                }}
-                            >
+            <div style={{ marginBottom: "30px" }}>
+                <h4 style={{ color, marginBottom: "15px", fontSize: "1rem" }}>{title}</h4>
+                {/* Red Channel */}
+                <div style={{ marginBottom: "10px" }}>
+                    <span style={{ color: "rgba(255, 100, 100, 0.9)", fontSize: "0.75rem" }}>Red</span>
+                    <div
+                        style={{
+                            display: "flex",
+                            height: "60px",
+                            alignItems: "flex-end",
+                            background: "rgba(0, 0, 0, 0.3)",
+                            padding: "2px",
+                            borderRadius: "2px",
+                        }}
+                    >
+                        {sampledIndices.map((idx) => {
+                            const height = maxRed > 0 ? (data.Red.values[idx] / maxRed) * 100 : 0;
+                            return (
                                 <div
+                                    key={idx}
                                     style={{
                                         flex: 1,
-                                        height: `${redHeight}%`,
-                                        background: "rgba(255, 100, 100, 0.7)",
-                                        minHeight: "2px",
+                                        height: `${Math.max(height, 1)}%`,
+                                        background: "rgba(255, 100, 100, 0.8)",
+                                        marginRight: "1px",
                                     }}
                                 />
+                            );
+                        })}
+                    </div>
+                </div>
+                {/* Green Channel */}
+                <div style={{ marginBottom: "10px" }}>
+                    <span style={{ color: "rgba(100, 255, 100, 0.9)", fontSize: "0.75rem" }}>Green</span>
+                    <div
+                        style={{
+                            display: "flex",
+                            height: "60px",
+                            alignItems: "flex-end",
+                            background: "rgba(0, 0, 0, 0.3)",
+                            padding: "2px",
+                            borderRadius: "2px",
+                        }}
+                    >
+                        {sampledIndices.map((idx) => {
+                            const height = maxGreen > 0 ? (data.Green.values[idx] / maxGreen) * 100 : 0;
+                            return (
                                 <div
+                                    key={idx}
                                     style={{
                                         flex: 1,
-                                        height: `${greenHeight}%`,
-                                        background: "rgba(100, 255, 100, 0.7)",
-                                        minHeight: "2px",
+                                        height: `${Math.max(height, 1)}%`,
+                                        background: "rgba(100, 255, 100, 0.8)",
+                                        marginRight: "1px",
                                     }}
                                 />
+                            );
+                        })}
+                    </div>
+                </div>
+                {/* Blue Channel */}
+                <div>
+                    <span style={{ color: "rgba(100, 100, 255, 0.9)", fontSize: "0.75rem" }}>Blue</span>
+                    <div
+                        style={{
+                            display: "flex",
+                            height: "60px",
+                            alignItems: "flex-end",
+                            background: "rgba(0, 0, 0, 0.3)",
+                            padding: "2px",
+                            borderRadius: "2px",
+                        }}
+                    >
+                        {sampledIndices.map((idx) => {
+                            const height = maxBlue > 0 ? (data.Blue.values[idx] / maxBlue) * 100 : 0;
+                            return (
                                 <div
+                                    key={idx}
                                     style={{
                                         flex: 1,
-                                        height: `${blueHeight}%`,
-                                        background: "rgba(100, 100, 255, 0.7)",
-                                        minHeight: "2px",
+                                        height: `${Math.max(height, 1)}%`,
+                                        background: "rgba(100, 100, 255, 0.8)",
+                                        marginRight: "1px",
                                     }}
                                 />
-                            </div>
-                        );
-                    })}
+                            );
+                        })}
+                    </div>
                 </div>
             </div>
         );
